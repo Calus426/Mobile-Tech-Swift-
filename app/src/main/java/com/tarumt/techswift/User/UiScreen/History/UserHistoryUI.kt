@@ -1,4 +1,4 @@
-package com.tarumt.techswift.userUIScreen
+package com.tarumt.techswift.User.UiScreen.History
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -23,16 +22,13 @@ import androidx.navigation.compose.rememberNavController
 import com.tarumt.techswift.ui.theme.GreenBackground
 
 @Composable
-fun UserHomeUI(
-    onNextButtonClicked: () -> Unit
+fun UserHistoryUI(
 ) {
-
     Box(
-        Modifier
-            .fillMaxSize()
-            .background(GreenBackground), // Dark background color
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
-    ) {
+    ){
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
@@ -48,36 +44,21 @@ fun UserHomeUI(
             ) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
-                    text = "Home",
+                    text = "History",
                     textAlign = TextAlign.Center,
                     color = Color.Black
                 )
 
-                Button(
-                    onClick = onNextButtonClicked,
-                    modifier = Modifier.align(Alignment.BottomCenter)
 
-                ){
-                    Text(text = "Next")
-                }
             }
-
         }
-
     }
 }
+
 @Preview
 @Composable
-fun HomePreview(){
+fun HistoryPreview(){
     val navController  = rememberNavController()
-    UserHomeUI(
-        onNextButtonClicked = {}
-    )
+    UserHistoryUI()
 }
-
-
-
-
-
-
 
