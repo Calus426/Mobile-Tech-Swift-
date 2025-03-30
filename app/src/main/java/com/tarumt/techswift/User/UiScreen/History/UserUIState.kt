@@ -1,6 +1,6 @@
-package com.tarumt.techswift.userUIScreen
+package com.tarumt.techswift.User.UiScreen.History
 
-import com.tarumt.techswift.userModel.Order
+import com.tarumt.techswift.User.Model.Order
 
 data class UserUIState(
     val inProgressList : List<Order> = emptyList(),
