@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -36,8 +37,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val currentDestination by navController.currentBackStackEntryAsState()
     val navItemList = listOf(
-        NavItem("Home", R.drawable.homeselected,R.drawable.homenonselected,Navigation.Home.name),
-        NavItem("History",R.drawable.orderselected,R.drawable.ordernonselected,Navigation.History.name)
+        NavItem(stringResource(R.string.home), R.drawable.homeselected,R.drawable.homenonselected,Navigation.Home.name),
+        NavItem(stringResource(R.string.history),R.drawable.orderselected,R.drawable.ordernonselected,Navigation.History.name)
     )
 
     var selectedButton by remember{ mutableIntStateOf(0)}
@@ -48,7 +49,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
         bottomBar = {
             NavigationBar(
                 containerColor = BottomBar,
-                modifier = Modifier.clip(RoundedCornerShape(24.dp))) {
+                modifier = Modifier.clip(RoundedCornerShape(25.dp))) {
                 navItemList.forEachIndexed{index,navItem ->
                     NavigationBarItem(
                         selected = selectedButton == index,

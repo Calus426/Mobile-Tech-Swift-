@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">TechSwift</string>
+    <string name="air_conditional">Air Conditional</string>
+    <string name="select_service">Select Service</string>
+    <string name="refrigerator">Refrigerator</string>
+    <string name="washing_machine">Washing Machine</string>
+    <string name="ceiling_fan">Ceiling Fan</string>
+    <string name="electricity">Electricity</string>
+    <string name="light">Light</string>
+    <string name="home">Home</string>
+    <string name="history">History</string>
 </resources>

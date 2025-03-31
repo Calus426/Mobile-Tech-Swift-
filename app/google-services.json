@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "209021927100",
+    "project_id": "techswift-15f63",
+    "storage_bucket": "techswift-15f63.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209021927100:android:767bd6565996fae3ac5ab9",
+        "android_client_info": {
+          "package_name": "com.tarumt.techswift"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAu2t6ijlUqoGF9Y-OisGdbJiBE_cxzol4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

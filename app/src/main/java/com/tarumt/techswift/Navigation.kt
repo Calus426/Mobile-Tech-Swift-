@@ -3,22 +3,27 @@ package com.tarumt.techswift
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tarumt.techswift.User.UiScreen.History.UserHistoryUI
 import com.tarumt.techswift.User.UiScreen.Home.UserHomeUI
+import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
+import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
 
 
 enum class Navigation(){
     Home,
-    History
+    History,
+    ServiceDetails
 }
 
 @Composable
 fun Navigate(navController: NavHostController = rememberNavController(),
              modifier : Modifier = Modifier){
+    val serviceViewModel : ServiceDetailsViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = Navigation.Home.name,
@@ -26,11 +31,20 @@ fun Navigate(navController: NavHostController = rememberNavController(),
             .fillMaxSize()
     ){
         composable(route = Navigation.Home.name){
-            UserHomeUI()
+
+            UserHomeUI(
+                onServiceClick = {
+                    serviceViewModel.updateServiceId(it)
+                    navController.navigate(Navigation.ServiceDetails.name)}
+            )
         }
 
         composable(route = Navigation.History.name){
             UserHistoryUI()
+        }
+
+        composable(route = Navigation.ServiceDetails.name){
+            ServiceDetailsUI(serviceViewModel)
         }
     }
 
