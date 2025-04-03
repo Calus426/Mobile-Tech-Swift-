@@ -1,42 +1,60 @@
 package com.tarumt.techswift.User.UiScreen.ServiceDetails
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.libraries.places.api.model.kotlin.place
+import coil.compose.rememberAsyncImagePainter
+import com.tarumt.techswift.BuildConfig
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Objects
 
 @Composable
-fun ServiceDetailsUI(serviceDetailsViewModel : ServiceDetailsViewModel = viewModel()){
+fun ServiceDetailsUI(
+    serviceDetailsViewModel : ServiceDetailsViewModel = viewModel(),
+    onSubmitRequestClicked : () -> Unit
+){
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
+
     Box(
         Modifier
             .fillMaxSize(),
@@ -45,7 +63,7 @@ fun ServiceDetailsUI(serviceDetailsViewModel : ServiceDetailsViewModel = viewMod
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.8f)
+                .fillMaxHeight(0.9f)
                 .padding(1.dp),
             shape = RoundedCornerShape(30.dp), // Rounded corners
             elevation = CardDefaults.cardElevation(4.dp),
@@ -53,48 +71,54 @@ fun ServiceDetailsUI(serviceDetailsViewModel : ServiceDetailsViewModel = viewMod
         ) {
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ){
-                Text(
-                    text = "Service id: ${serviceDetailsUiState.serviceId}"
-                )
-                Description(
+                TextDescription(
                     serviceDetailsViewModel.userDescription,
                     onDescriptionChange = {serviceDetailsViewModel.descriptionUpdate(it)}
                     )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Capture Photo Button
+                PictureDescription(
+                    serviceDetailsViewModel = serviceDetailsViewModel,
+                    serviceDetailsUiState,
+                    onSubmitRequestClicked = onSubmitRequestClicked
+                )
             }
         }
     }
 }
 
+
 @Composable
-fun Description(
+fun TextDescription(
     descriptionText:String = "",
     onDescriptionChange: (String) -> Unit
     ){
     Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 9.dp , top = 15.dp, bottom = 2.dp)
+                .padding(start = 9.dp, top = 15.dp, bottom = 2.dp, end = 9.dp)
             ){
         Text(
+            modifier = Modifier.fillMaxWidth(),
             text = "Describe your problem",
             style = MaterialTheme.typography.titleSmall,
-            fontSize = 20.sp
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center
         )
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 9.dp,end = 9.dp)
-    ){
+
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().height(200.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
             value = descriptionText,
             onValueChange = onDescriptionChange,
             colors = TextFieldDefaults.colors(
-               unfocusedContainerColor = Color.Transparent,
-               focusedContainerColor = Color.Transparent
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent
             ),
             placeholder = {
                 Text(text = "Description")
@@ -103,12 +127,110 @@ fun Description(
         )
     }
 
+}
+@Composable
+private fun PictureDescription(
+    serviceDetailsViewModel : ServiceDetailsViewModel,
+    uiState : ServiceDetailsUiState,
+    onSubmitRequestClicked: () -> Unit
+
+) {
+    val context = LocalContext.current
+    val file = context.createImageFile()
+    val uri = FileProvider.getUriForFile(
+        Objects.requireNonNull(context),
+        BuildConfig.APPLICATION_ID + ".provider", file
+    )
+
+    // Camera launcher for taking a picture
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
+            serviceDetailsViewModel.updatePictureDescription(uri)
+        }
+
+    // Permission launcher to request camera permissions
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ){
+        Text(
+            text = "Take Picture of your problem",
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 20.sp
+        )
+        Button(
+            onClick = {
+                val permissionCheckResult =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    cameraLauncher.launch(uri)
+                } else {
+                    // Request a permission
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+            }) {
+            Text(text = "Capture Image From Camera")
+        }
+
+        if (uiState.pictureDescription?.path?.isNotEmpty() == true) {
+            Image(
+                modifier = Modifier
+                    .padding(bottom = 5.dp)
+                    .heightIn(max = 210.dp),
+                painter = rememberAsyncImagePainter(uiState.pictureDescription),
+                contentDescription = null
+            )
+        }
+
+
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Bottom
+        ){
+            Button(
+                modifier = Modifier.padding(end = 5.dp, bottom = 5.dp),
+                onClick = {onSubmitRequestClicked()}
+            ) {
+                Text(text = "Submit Service Request")
+            }
+        }
+
+
+    }
 
 }
 
+fun Context.createImageFile(): File {
+    // Create an image file name
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+    val imageFileName = "JPEG_" + timeStamp + "_"
+    val image = File.createTempFile(
+        imageFileName, /* prefix */
+        ".jpg", /* suffix */
+        externalCacheDir      /* directory */
+    )
+    return image
+}
+
+
 @Composable
 @Preview
-fun ServiceDetailsPreview()
-{
-    ServiceDetailsUI()
+fun ServiceDetailsPreview() {
+    ServiceDetailsUI {}
 }

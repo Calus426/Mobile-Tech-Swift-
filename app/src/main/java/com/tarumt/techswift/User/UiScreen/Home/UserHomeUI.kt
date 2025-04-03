@@ -38,7 +38,7 @@ import com.tarumt.techswift.User.Model.Service
 @Composable
 fun UserHomeUI(
     homeViewModel : UserHomeViewModel = viewModel(),
-    onServiceClick : (Int) -> Unit
+    onServiceClick : (Service) -> Unit
 ) {
 
 
@@ -97,11 +97,11 @@ fun UserHomeUI(
 
 @Composable
 fun ServiceItem(service : Service,modifier: Modifier = Modifier,
-                onServiceClick : (Int) -> Unit
+                onServiceClick : (Service) -> Unit
 ){
     Column(
         modifier = Modifier
-            .clickable { onServiceClick(service.id) }
+            .clickable { onServiceClick(service) }
             .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){

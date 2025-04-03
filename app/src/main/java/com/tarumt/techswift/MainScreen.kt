@@ -1,14 +1,8 @@
 package com.tarumt.techswift
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -17,10 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -35,13 +26,18 @@ import com.tarumt.techswift.ui.theme.GreenBackground
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val currentDestination by navController.currentBackStackEntryAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     val navItemList = listOf(
         NavItem(stringResource(R.string.home), R.drawable.homeselected,R.drawable.homenonselected,Navigation.Home.name),
         NavItem(stringResource(R.string.history),R.drawable.orderselected,R.drawable.ordernonselected,Navigation.History.name)
     )
 
-    var selectedButton by remember{ mutableIntStateOf(0)}
+    val selectedButton = remember(currentRoute) {
+        navItemList.firstOrNull { it.route == currentRoute } ?: navItemList[0]
+    }
+
 
     Scaffold(
         containerColor = GreenBackground,
@@ -52,31 +48,38 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.clip(RoundedCornerShape(25.dp))) {
                 navItemList.forEachIndexed{index,navItem ->
                     NavigationBarItem(
-                        selected = selectedButton == index,
+                        selected = selectedButton.route == navItem.route,
                         onClick = {
-                                navController.navigate(navItem.route) {
-                                    popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                                    launchSingleTop = true
-                                    restoreState = true
+                            if (currentRoute != navItem.route){
+                                if(currentRoute == Navigation.ServiceDetails.name && navItem.route == Navigation.Home.name)
+                                {
+                                    navController.popBackStack()
+                                }
+                                else{
+                                    navController.navigate(navItem.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
 
-                            selectedButton = index
+                            }
+
                         },
                         icon = {
-                            if(selectedButton == index){
-                                Icon(painterResource(id = navItem.iconSelected), contentDescription = navItem.label)
-                            }
-                            else{
-                                Icon(painterResource(id = navItem.iconNonSelected), contentDescription = navItem.label)
-                            }
+                            Icon(
+                                painter = painterResource(
+                                    id = if (selectedButton.route == navItem.route) navItem.iconSelected
+                                    else navItem.iconNonSelected
+                                ),
+                                contentDescription = navItem.label
+                            )
                         },
                         label = {
-                            if (selectedButton == index) {
-                                Text(text = navItem.label,
-                                    color = Color.Black,
-                                )
-                            } else {
-                                Text(text = "") // Hide label when not selected
+                            if (selectedButton.route == navItem.route) {
+                                Text(text = navItem.label, color = Color.Black)
                             }
                         },
                         colors = NavigationBarItemDefaults.colors(

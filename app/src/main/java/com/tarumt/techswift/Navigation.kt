@@ -34,8 +34,23 @@ fun Navigate(navController: NavHostController = rememberNavController(),
 
             UserHomeUI(
                 onServiceClick = {
+                    serviceViewModel.resetServiceDetails()
                     serviceViewModel.updateServiceId(it)
                     navController.navigate(Navigation.ServiceDetails.name)}
+            )
+        }
+
+        composable(route = Navigation.ServiceDetails.name){
+            ServiceDetailsUI(
+                serviceViewModel,
+                onSubmitRequestClicked = {
+                    serviceViewModel.updateTextDescription()
+                    serviceViewModel.saveServiceRequest()
+                    navController.navigate(Navigation.History.name) {
+                        // clears the entire back stack
+                        popUpTo(0) // Clears all back stack
+                    }
+                }
             )
         }
 
@@ -43,9 +58,6 @@ fun Navigate(navController: NavHostController = rememberNavController(),
             UserHistoryUI()
         }
 
-        composable(route = Navigation.ServiceDetails.name){
-            ServiceDetailsUI(serviceViewModel)
-        }
     }
 
 }
