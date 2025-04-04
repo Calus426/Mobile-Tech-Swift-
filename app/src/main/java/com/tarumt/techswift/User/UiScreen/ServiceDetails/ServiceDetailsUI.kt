@@ -18,17 +18,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +49,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.tarumt.techswift.BuildConfig
+import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,6 +62,12 @@ fun ServiceDetailsUI(
 ){
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
+
+    val context = LocalContext.current
+
+    var showProcessingDialog by remember { mutableStateOf(false)}
+    var button by remember{ mutableStateOf(true)}
+    var navigate by remember{ mutableStateOf(false)}
 
     Box(
         Modifier
@@ -84,9 +98,49 @@ fun ServiceDetailsUI(
                 PictureDescription(
                     serviceDetailsViewModel = serviceDetailsViewModel,
                     serviceDetailsUiState,
-                    onSubmitRequestClicked = onSubmitRequestClicked
+                    button
                 )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.Bottom
+                ){
+                    Button(
+                        modifier = Modifier.padding(end = 5.dp, bottom = 5.dp),
+                        enabled = button,
+                        onClick = {
+                            showProcessingDialog = true
+                            button = false
+                            serviceDetailsViewModel.savePictureDescription(context) {
+                                showProcessingDialog = false
+                                navigate = true
+                            }
+
+
+                        }
+                    ) {
+                        Text(text = "Submit Service Request")
+                    }
+                }
             }
+        }
+        if(showProcessingDialog){
+            CircularProgressIndicator(color = Color.White,
+                strokeWidth = 4.dp,
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .size(50.dp)
+            )
+        }
+        LaunchedEffect(Unit) {
+            if(navigate){
+                delay (2000)
+                onSubmitRequestClicked()
+            }
+
         }
     }
 }
@@ -130,9 +184,9 @@ fun TextDescription(
 }
 @Composable
 private fun PictureDescription(
-    serviceDetailsViewModel : ServiceDetailsViewModel,
-    uiState : ServiceDetailsUiState,
-    onSubmitRequestClicked: () -> Unit
+    serviceDetailsViewModel: ServiceDetailsViewModel,
+    uiState: ServiceDetailsUiState,
+    button: Boolean
 
 ) {
     val context = LocalContext.current
@@ -180,7 +234,9 @@ private fun PictureDescription(
                     // Request a permission
                     permissionLauncher.launch(Manifest.permission.CAMERA)
                 }
-            }) {
+            },
+            enabled = button
+        ) {
             Text(text = "Capture Image From Camera")
         }
 
@@ -195,21 +251,6 @@ private fun PictureDescription(
         }
 
 
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom
-        ){
-            Button(
-                modifier = Modifier.padding(end = 5.dp, bottom = 5.dp),
-                onClick = {onSubmitRequestClicked()}
-            ) {
-                Text(text = "Submit Service Request")
-            }
-        }
 
 
     }

@@ -3,12 +3,14 @@ package com.tarumt.techswift
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tarumt.techswift.User.UiScreen.History.UserHistoryUI
+import com.tarumt.techswift.User.UiScreen.History.UserHistoryViewModel
 import com.tarumt.techswift.User.UiScreen.Home.UserHomeUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
@@ -24,6 +26,7 @@ enum class Navigation(){
 fun Navigate(navController: NavHostController = rememberNavController(),
              modifier : Modifier = Modifier){
     val serviceViewModel : ServiceDetailsViewModel = viewModel()
+    val historyViewModel : UserHistoryViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = Navigation.Home.name,
@@ -44,8 +47,6 @@ fun Navigate(navController: NavHostController = rememberNavController(),
             ServiceDetailsUI(
                 serviceViewModel,
                 onSubmitRequestClicked = {
-                    serviceViewModel.updateTextDescription()
-                    serviceViewModel.saveServiceRequest()
                     navController.navigate(Navigation.History.name) {
                         // clears the entire back stack
                         popUpTo(0) // Clears all back stack
@@ -55,7 +56,10 @@ fun Navigate(navController: NavHostController = rememberNavController(),
         }
 
         composable(route = Navigation.History.name){
-            UserHistoryUI()
+            historyViewModel.loadPendingRequest()
+            UserHistoryUI(
+                historyViewModel
+            )
         }
 
     }

@@ -21,7 +21,10 @@ class UserHistoryViewModel : ViewModel() {
     init {
         resetHistory()
         loadPendingRequest()
+        Log.d("Init","Initial")
     }
+
+
 
     fun loadPendingRequest() {
         val db = Firebase.firestore
