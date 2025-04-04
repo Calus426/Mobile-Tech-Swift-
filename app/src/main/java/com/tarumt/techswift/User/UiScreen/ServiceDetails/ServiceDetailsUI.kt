@@ -58,7 +58,7 @@ import java.util.Objects
 @Composable
 fun ServiceDetailsUI(
     serviceDetailsViewModel : ServiceDetailsViewModel = viewModel(),
-    onSubmitRequestClicked : () -> Unit
+    onSubmitRequestClicked : (String) -> Unit
 ){
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
@@ -135,13 +135,10 @@ fun ServiceDetailsUI(
                     .size(50.dp)
             )
         }
-        LaunchedEffect(Unit) {
-            if(navigate){
-                delay (2000)
-                onSubmitRequestClicked()
-            }
+       if(navigate){
+           onSubmitRequestClicked("Service request added successfully!")
+       }
 
-        }
     }
 }
 

@@ -10,7 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.tarumt.techswift.User.Model.Request
@@ -94,7 +96,8 @@ class ServiceDetailsViewModel : ViewModel() {
             id = count,
             serviceId =_uiState.value.serviceSelected.id ,
             textDescription = _uiState.value.textDescription,
-            pictureDescription = _uiState.value.picturePath
+            pictureDescription = _uiState.value.picturePath,
+            createdTime = Timestamp.now()
 
         )
         val dbRef = Firebase.firestore
@@ -128,14 +131,15 @@ class ServiceDetailsViewModel : ViewModel() {
 
         uploadTask
             .addOnSuccessListener {
-                onComplete()
-                updatePicturePath(path) // Update state with image path
-
-                updateTextDescription()
-                saveServiceRequest()
-                Toast.makeText(context, "Sucessfully upload service request!", Toast.LENGTH_SHORT).show()
-
-
+                imageRef.downloadUrl
+                    .addOnSuccessListener { downloadUri ->
+                        val url = downloadUri.toString()
+                         // optional, if you need to observe it
+                        updatePicturePath(url)
+                        updateTextDescription()
+                        saveServiceRequest()
+                        onComplete()
+                    }
 
         }
             .addOnFailureListener {

@@ -27,6 +27,7 @@ fun Navigate(navController: NavHostController = rememberNavController(),
              modifier : Modifier = Modifier){
     val serviceViewModel : ServiceDetailsViewModel = viewModel()
     val historyViewModel : UserHistoryViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Navigation.Home.name,
@@ -47,6 +48,7 @@ fun Navigate(navController: NavHostController = rememberNavController(),
             ServiceDetailsUI(
                 serviceViewModel,
                 onSubmitRequestClicked = {
+                    historyViewModel.updateToastMessage(it)
                     navController.navigate(Navigation.History.name) {
                         // clears the entire back stack
                         popUpTo(0) // Clears all back stack
@@ -56,7 +58,6 @@ fun Navigate(navController: NavHostController = rememberNavController(),
         }
 
         composable(route = Navigation.History.name){
-            historyViewModel.loadPendingRequest()
             UserHistoryUI(
                 historyViewModel
             )
