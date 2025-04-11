@@ -9,4 +9,5 @@
     <string name="light">Light</string>
     <string name="home">Home</string>
     <string name="history">History</string>
+    <string name="service_details">ServiceDetails</string>
 </resources>

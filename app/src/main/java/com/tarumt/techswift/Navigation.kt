@@ -1,9 +1,11 @@
 package com.tarumt.techswift
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,17 +18,21 @@ import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
 
 
-enum class Navigation(){
-    Home,
-    History,
-    ServiceDetails
+enum class Navigation(@StringRes val title : Int,val canNavigate : Boolean){
+    Home(title = R.string.home,canNavigate = false),
+    History(title = R.string.history ,canNavigate = false),
+    ServiceDetails(title = R.string.service_details,canNavigate = true)
+
 }
 
 @Composable
-fun Navigate(navController: NavHostController = rememberNavController(),
-             modifier : Modifier = Modifier){
-    val serviceViewModel : ServiceDetailsViewModel = viewModel()
-    val historyViewModel : UserHistoryViewModel = viewModel()
+fun Navigate(
+    modifier : Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+    serviceViewModel : ServiceDetailsViewModel = viewModel(),
+    historyViewModel : UserHistoryViewModel = viewModel()
+){
+
 
     NavHost(
         navController = navController,
