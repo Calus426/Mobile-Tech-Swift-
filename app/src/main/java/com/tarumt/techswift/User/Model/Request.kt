@@ -10,5 +10,7 @@ data class Request(
     val pictureDescription : String = "",
     val userId : String = "ugJPJBqAV1f9EdJk5MWOBpvrLxY2",
     val pending : Boolean = true,
-    val createdTime : Timestamp? = null
+    val done : Boolean = false,
+    val createdTime : Timestamp? = null,
+    val offeredPrice : Double? = 0.0
 )

@@ -29,12 +29,19 @@ class ServiceDetailsViewModel : ViewModel() {
     var userDescription by mutableStateOf("")
         private set
 
+    var offeredPrice by mutableStateOf("")
+        private set
+
     var count by mutableStateOf(0)
         private set
 
 
     fun descriptionUpdate(description : String){
         userDescription = description
+    }
+
+    fun priceUpdate(price : String){
+        offeredPrice = price
     }
 
     fun updateServiceId(service : Service){
@@ -63,6 +70,15 @@ class ServiceDetailsViewModel : ViewModel() {
         }
     }
 
+    fun updateOfferedPrice(){
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                offeredPrice = offeredPrice
+            )
+        }
+    }
+
     fun updatePicturePath(path : String){
         _uiState.update { currentState ->
             currentState.copy(
@@ -73,6 +89,7 @@ class ServiceDetailsViewModel : ViewModel() {
 
     fun resetServiceDetails(){
         descriptionUpdate("")
+        priceUpdate("")
         _uiState.value = ServiceDetailsUiState()
     }
 
@@ -97,7 +114,8 @@ class ServiceDetailsViewModel : ViewModel() {
             serviceId =_uiState.value.serviceSelected.id ,
             textDescription = _uiState.value.textDescription,
             pictureDescription = _uiState.value.picturePath,
-            createdTime = Timestamp.now()
+            createdTime = Timestamp.now(),
+            offeredPrice = _uiState.value.offeredPrice.toDoubleOrNull()
 
         )
         val dbRef = Firebase.firestore
@@ -117,7 +135,10 @@ class ServiceDetailsViewModel : ViewModel() {
 
     fun savePictureDescription(context: Context,onComplete:()-> Unit) {
         val uri = _uiState.value.pictureDescription ?: run {
-            Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+
+            updateTextDescription()
+            updateOfferedPrice()
+            saveServiceRequest()
             onComplete()
             return
         }
@@ -137,6 +158,7 @@ class ServiceDetailsViewModel : ViewModel() {
                          // optional, if you need to observe it
                         updatePicturePath(url)
                         updateTextDescription()
+                        updateOfferedPrice()
                         saveServiceRequest()
                         onComplete()
                     }

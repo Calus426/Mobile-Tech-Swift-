@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,9 +31,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +58,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.tarumt.techswift.BuildConfig
-import kotlinx.coroutines.delay
+import com.tarumt.techswift.R
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,11 +71,9 @@ fun ServiceDetailsUI(
 ){
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
-
     val context = LocalContext.current
-
     var showProcessingDialog by remember { mutableStateOf(false)}
-    var button by remember{ mutableStateOf(true)}
+    var enable by remember{ mutableStateOf(true)}
     var navigate by remember{ mutableStateOf(false)}
 
     Box(
@@ -89,17 +96,27 @@ fun ServiceDetailsUI(
             ){
                 TextDescription(
                     serviceDetailsViewModel.userDescription,
-                    onDescriptionChange = {serviceDetailsViewModel.descriptionUpdate(it)}
+                    onDescriptionChange = {serviceDetailsViewModel.descriptionUpdate(it)},
+                    enable = enable
                     )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(5.dp))
+
+                PriceOffer(
+                    price = serviceDetailsViewModel.offeredPrice,
+                    onPriceChange = {serviceDetailsViewModel.priceUpdate(it)},
+                    enable = enable
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Capture Photo Button
                 PictureDescription(
                     serviceDetailsViewModel = serviceDetailsViewModel,
                     serviceDetailsUiState,
-                    button
+                    enable
                 )
+
 
                 Row(
                     modifier = Modifier
@@ -110,19 +127,18 @@ fun ServiceDetailsUI(
                 ){
                     Button(
                         modifier = Modifier.padding(end = 5.dp, bottom = 5.dp),
-                        enabled = button,
+                        enabled = enable,
                         onClick = {
                             showProcessingDialog = true
-                            button = false
+                            enable = false
                             serviceDetailsViewModel.savePictureDescription(context) {
                                 showProcessingDialog = false
                                 navigate = true
                             }
 
-
                         }
                     ) {
-                        Text(text = "Submit Service Request")
+                        Text(text = stringResource(R.string.submit_service_request))
                     }
                 }
             }
@@ -146,7 +162,8 @@ fun ServiceDetailsUI(
 @Composable
 fun TextDescription(
     descriptionText:String = "",
-    onDescriptionChange: (String) -> Unit
+    onDescriptionChange: (String) -> Unit,
+    enable : Boolean
     ){
     Column(
             modifier = Modifier
@@ -164,7 +181,7 @@ fun TextDescription(
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .height(100.dp),
             value = descriptionText,
             onValueChange = onDescriptionChange,
             colors = TextFieldDefaults.colors(
@@ -173,12 +190,61 @@ fun TextDescription(
             ),
             placeholder = {
                 Text(text = "Description")
-            }
+            },
+            enabled = enable
+
 
         )
     }
 
 }
+
+@Composable
+fun PriceOffer(
+    price: String,
+    onPriceChange: (String) -> Unit = {},
+    enable: Boolean
+){
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 9.dp, top = 15.dp, bottom = 2.dp, end = 9.dp)
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Enter Your Offer Price (RM)",
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center
+        )
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth(),
+            value = price,
+            onValueChange = onPriceChange,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide() // Hide the keyboard
+                    focusManager.clearFocus() // Clear focus from TextField
+                }
+            ),
+            readOnly = !enable,
+            prefix = { Text("RM ") },
+            placeholder = {Text("0.0")},
+            label = {Text("Amount")},
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+}
+
 @Composable
 private fun PictureDescription(
     serviceDetailsViewModel: ServiceDetailsViewModel,
@@ -216,11 +282,44 @@ private fun PictureDescription(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ){
+
         Text(
             text = "Take Picture of your problem",
             style = MaterialTheme.typography.titleSmall,
             fontSize = 20.sp
         )
+
+        Box(
+            modifier = Modifier
+                .border(
+                    width = 1.dp,
+                    color = Color.Black,
+                    shape = RoundedCornerShape(1.dp)
+                )
+                .fillMaxWidth(0.7f),
+            contentAlignment = Alignment.Center
+        ){
+            if (uiState.pictureDescription?.path?.isNotEmpty() == true) {
+                Image(
+                    modifier = Modifier
+                        .padding(vertical = 5.dp)
+                        .heightIn(max = 150.dp),
+                    painter = rememberAsyncImagePainter(uiState.pictureDescription),
+                    contentDescription = null
+                )
+            }
+            else{
+                Image(
+                    modifier = Modifier
+                        .padding(vertical = 5.dp)
+                        .heightIn(max = 150.dp),
+                    painter = painterResource(R.drawable.emptyimage),
+                    contentDescription = null
+                )
+            }
+        }
+
+
         Button(
             onClick = {
                 val permissionCheckResult =
@@ -236,18 +335,6 @@ private fun PictureDescription(
         ) {
             Text(text = "Capture Image From Camera")
         }
-
-        if (uiState.pictureDescription?.path?.isNotEmpty() == true) {
-            Image(
-                modifier = Modifier
-                    .padding(bottom = 5.dp)
-                    .heightIn(max = 210.dp),
-                painter = rememberAsyncImagePainter(uiState.pictureDescription),
-                contentDescription = null
-            )
-        }
-
-
 
 
     }

@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.coil.compose) // Coil Compose
     implementation(libs.androidx.appcompat)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.androidx.ui.text.google.fonts)
 }
 
 secrets{
