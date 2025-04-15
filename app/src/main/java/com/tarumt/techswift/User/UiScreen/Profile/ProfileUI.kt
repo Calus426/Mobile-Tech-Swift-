@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -57,6 +58,7 @@ import com.tarumt.techswift.ui.theme.provider
 fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     val uiState = profileViewModel.uiState.collectAsState()
 
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -110,7 +112,7 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                     ProfileTextField(
                         "Name",
                         profileViewModel.name,
-                        onValueChange = {profileViewModel.nameUpdate(it)}
+                        onValueChange = { profileViewModel.nameUpdate(it) }
                     )
 
 
@@ -124,11 +126,11 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                         "Phone",
                         profileViewModel.phone,
                         onValueChange = { profileViewModel.phoneUpdate(it) }
-                        )
+                    )
 
                     DropdownSelection(
                         "Gender",
-                        onValueChange = {profileViewModel.genderUpdate(it)}
+                        onValueChange = { profileViewModel.genderUpdate(it) }
                     )
                     AddressTextField(
                         "Address",
@@ -145,7 +147,9 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                     )
 
                     Button(
-                        onClick = {},
+                        onClick = {
+                            profileViewModel.updateProfileDetails(context)
+                        },
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                             .size(50.dp),

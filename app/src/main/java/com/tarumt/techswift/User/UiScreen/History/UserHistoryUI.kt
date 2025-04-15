@@ -38,7 +38,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,6 +51,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import com.tarumt.techswift.User.Model.Request
 import com.tarumt.techswift.User.Model.Service
+import com.tarumt.techswift.ui.theme.provider
+import okhttp3.internal.wait
 
 @Composable
 fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
@@ -105,13 +111,13 @@ fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
                     if(statusScreen.equals("inProgress")){
                         items(uiState.inProgressList){ inProgress ->
                             val service =serviceList[inProgress.serviceId]
-                            PendingCard(inProgress,service)
+                            ServiceCard(inProgress,service)
                         }
                     }
                     else{
                         items(uiState.pendingList){ pending ->
                             val service =serviceList[pending.serviceId]
-                            PendingCard(pending,service)
+                            ServiceCard(pending,service)
                         }
                     }
 
@@ -130,7 +136,7 @@ fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
 
 
 @Composable
-fun PendingCard(
+fun ServiceCard(
     request: Request,
     service : Service
 ){
@@ -141,22 +147,14 @@ fun PendingCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(14.dp)
+            .padding(horizontal = 4.dp, vertical = 10.dp)
             .height(154.dp)
     ) {
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp)
+                modifier = Modifier.padding(start = 7.dp,end =2.dp)
             ) {
-//            AsyncImage(
-//                model = pending.pictureDescription,
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(200.dp)
-//                    .padding(8.dp)
-//            )
 
                 Card(
                     shape = RoundedCornerShape(30.dp),
@@ -177,41 +175,57 @@ fun PendingCard(
                     )
                 }
 
-                Row{
-                    Column(
-                        modifier = Modifier
-                            .weight(0.7f)
-                            .padding(start = 15.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = service.label)+" Service",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontSize = 15.sp
-                            ),
-                            maxLines = 2,
-                            minLines = 2,
-                            textAlign = TextAlign.Start
-                        )
 
-                    }
-
-                    Column{
-                        Text(
-                            text = request.offeredPrice.toString(),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontSize = 16.sp
+                Column(
+                    modifier = Modifier.padding(start = 15.dp)
+                ){
+                    Row{
+                        Column(
+                            modifier = Modifier
+                                .weight(0.7f)
+                        ) {
+                            Text(
+                                text = stringResource(id = service.label)+" Service",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 15.sp
+                                ),
+                                textAlign = TextAlign.Start
                             )
-                        )
+
+                        }
+
+                        Column{
+                            Text(
+                                text ="RM "+ request.offeredPrice.toString(),
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            )
+
+                        }
 
                     }
 
+                    Text(
+                        text = "Order Accpeted by Technician Chong",
+                        color = Color(0xFFC6C6C6),
+                        fontFamily = FontFamily(
+                            Font(
+                                googleFont = GoogleFont("Inter"),
+                                fontProvider = provider,
+                                weight = FontWeight.SemiBold
+                            )
+                        ),
+                        fontSize = 10.sp,
+                        lineHeight = 12.sp
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+
             }
 
 

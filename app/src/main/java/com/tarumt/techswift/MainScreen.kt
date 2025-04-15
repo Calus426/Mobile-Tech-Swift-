@@ -195,7 +195,8 @@ fun TopBarApp(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Navigate Back"
+                        contentDescription = "Navigate Back",
+                        tint = Color.White
                     )
                 }
             } else {
