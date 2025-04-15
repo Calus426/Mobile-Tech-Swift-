@@ -25,11 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -104,7 +106,10 @@ fun ServiceDetailsUI(
 
                 PriceOffer(
                     price = serviceDetailsViewModel.offeredPrice,
-                    onPriceChange = {serviceDetailsViewModel.priceUpdate(it)},
+                    onPriceChange = {
+                        if (it.all { char -> char.isDigit() }) {
+                            serviceDetailsViewModel.priceUpdate(it)
+                        }},
                     enable = enable
                 )
 
@@ -135,8 +140,8 @@ fun ServiceDetailsUI(
                                 showProcessingDialog = false
                                 navigate = true
                             }
-
-                        }
+                        },
+                        colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
                     ) {
                         Text(text = stringResource(R.string.submit_service_request))
                     }
@@ -174,7 +179,7 @@ fun TextDescription(
             modifier = Modifier.fillMaxWidth(),
             text = "Describe your problem",
             style = MaterialTheme.typography.titleSmall,
-            fontSize = 20.sp,
+            fontSize = 15.sp,
             textAlign = TextAlign.Center
         )
 
@@ -184,9 +189,11 @@ fun TextDescription(
                 .height(100.dp),
             value = descriptionText,
             onValueChange = onDescriptionChange,
-            colors = TextFieldDefaults.colors(
+            colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent
+                focusedContainerColor = Color.Transparent,
+                unfocusedBorderColor = Color.Black.copy(alpha =0.2f),
+                focusedBorderColor = Color.Black.copy(alpha =0.2f)
             ),
             placeholder = {
                 Text(text = "Description")
@@ -217,7 +224,7 @@ fun PriceOffer(
             modifier = Modifier.fillMaxWidth(),
             text = "Enter Your Offer Price (RM)",
             style = MaterialTheme.typography.titleSmall,
-            fontSize = 20.sp,
+            fontSize = 15.sp,
             textAlign = TextAlign.Center
         )
 
@@ -240,7 +247,11 @@ fun PriceOffer(
             prefix = { Text("RM ") },
             placeholder = {Text("0.0")},
             label = {Text("Amount")},
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Black.copy(alpha =0.2f),
+                focusedBorderColor = Color.Black.copy(alpha =0.2f)
+            ),
         )
     }
 }
@@ -286,14 +297,14 @@ private fun PictureDescription(
         Text(
             text = "Take Picture of your problem",
             style = MaterialTheme.typography.titleSmall,
-            fontSize = 20.sp
+            fontSize = 15.sp
         )
 
         Box(
             modifier = Modifier
                 .border(
                     width = 1.dp,
-                    color = Color.Black,
+                    color = Color.Black.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(1.dp)
                 )
                 .fillMaxWidth(0.7f),
@@ -331,7 +342,8 @@ private fun PictureDescription(
                     permissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             },
-            enabled = button
+            enabled = button,
+            colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
         ) {
             Text(text = "Capture Image From Camera")
         }
