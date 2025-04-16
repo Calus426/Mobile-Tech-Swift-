@@ -175,7 +175,6 @@ fun ServiceCard(
                     )
                 }
 
-
                 Column(
                     modifier = Modifier.padding(start = 15.dp)
                 ){

@@ -6,8 +6,14 @@ import android.widget.Toast
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.SearchByTextRequest
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.tarumt.techswift.User.Model.User
@@ -151,7 +157,102 @@ class ProfileViewModel : ViewModel() {
             }
     }
 
+    fun loadAddressSuggestion(context: Context){
+
+        val placesClient = Places.createClient(context)
+        val token = AutocompleteSessionToken.newInstance()
+
+        if(address.length>3){
+            val request = FindAutocompletePredictionsRequest.builder()
+                .setSessionToken(token)
+                .setQuery(address)
+                .setCountries(listOf("MY")) // 🔒 Restrict to Malaysia
+                .build()
+
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+                    val suggestions = response.autocompletePredictions.map {
+                        it.getFullText(null).toString()
+                    }
+                    _uiState.update { currentState->
+                        currentState.copy(
+                            addressSuggestion = suggestions
+                        )
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("AddressAutocomplete", "Failed to load predictions", it)
+                }
+        }
+        else{
+            if(_uiState.value.addressSuggestion.isNotEmpty()){
+                _uiState.update { currentState->
+                    currentState.copy(
+                        addressSuggestion  = emptyList()
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadAndFillAddress(address : String,context: Context){
+        val placeFields = listOf(Place.Field.ADDRESS_COMPONENTS,)
+
+        val request = SearchByTextRequest
+            .builder(address, placeFields)
+            .setMaxResultCount(1)
+            .build()
+
+        val placesClient = Places.createClient(context) // make sure context is accessible
+        placesClient.searchByText(request)
+            .addOnSuccessListener { response ->
+                val validPlace = response.places.firstOrNull { place ->
+                    place.addressComponents?.asList()?.isNotEmpty() == true
+                }
+
+                validPlace?.addressComponents?.asList()?.let { addressComponents ->
+                    // Process the address components and build a full address string
+                    var fullAddress = ""
+                    var postcode = ""
+                    var state = ""
+
+                    addressComponents.forEach { component ->
+                        when {
+                            // Combine street number and route for the full address
+                            component.types.contains("street_number") || component.types.contains("route")||component.types.contains("sublocality") -> {
+                               if( component.types.contains("street_number")){
+                                   fullAddress += "${component.name} "
+                               }
+                                else
+                                fullAddress += ", ${component.name} "
+                            }
+                            // Extract the postcode
+                            component.types.contains("postal_code") -> {
+                                postcode = component.name
+                            }
+                            // Extract state (administrative_area_level_1 or locality)
+                            component.types.contains("locality") || component.types.contains("administrative_area_level_1") -> {
+                                state = component.name
+                            }
+                        }
+                    }
+
+                    // Log the results
+                    addressUpdate(fullAddress)
+                    postcodeUpdate(postcode)
+                    stateUpdate(state)
+                } ?: run {
+                    Log.e("AddressAutocomplete", "No valid address found")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("AddressAutocomplete", "Failed to load predictions", exception)
+            }
+    }
+
     init{
         loadUserProfile()
     }
+
+
 }

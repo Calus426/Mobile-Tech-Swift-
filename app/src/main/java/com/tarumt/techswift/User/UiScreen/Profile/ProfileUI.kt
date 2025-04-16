@@ -135,6 +135,14 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                     AddressTextField(
                         "Address",
                         profileViewModel.address,
+                        profileViewModel.postcode,
+                        profileViewModel.state,
+                        onValueChange = {
+                            profileViewModel.addressUpdate(it)
+                            profileViewModel.loadAddressSuggestion(context)
+                        },
+                        uiState.value.addressSuggestion,
+                        onDropdownClick = {profileViewModel.loadAndFillAddress(address = it,context=context)}
                     )
 
                     HorizontalDivider(
@@ -181,8 +189,19 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddressTextField(fieldName: String, value: String) {
+fun AddressTextField(
+    fieldName: String,
+    address: String,
+    postcode: String,
+    state: String,
+    onValueChange: (String) -> Unit,
+    suggestions: List<String> = emptyList(),
+    onDropdownClick: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier.padding(bottom = 3.dp)
@@ -216,20 +235,49 @@ fun AddressTextField(fieldName: String, value: String) {
                 )
             )
         )
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
+        ExposedDropdownMenuBox(
+            expanded = expanded && suggestions.isNotEmpty(),
+            onExpandedChange = { expanded = it },
+        ) {
+            OutlinedTextField(
+                value = address,
+                onValueChange ={
+                    onValueChange(it)
+                    expanded = true
+                } ,
 //            placeholder = { Text(placeholder,fontSize = 13.sp) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFe0d4d4),
-                unfocusedContainerColor = Color(0xFFe0d4d4)
-            ),
-            modifier = Modifier
-                .height(45.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            textStyle = TextStyle(fontSize = 13.sp),
-        )
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFe0d4d4),
+                    unfocusedContainerColor = Color(0xFFe0d4d4)
+                ),
+                modifier = Modifier
+                    .height(45.dp)
+                    .menuAnchor(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                textStyle = TextStyle(fontSize = 13.sp),
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded && suggestions.isNotEmpty(),
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+            ) {
+                suggestions.forEach { suggestion ->
+                    DropdownMenuItem(
+                        text = { Text(suggestion) },
+                        onClick = {
+                            expanded = false
+                            onDropdownClick(suggestion)
+                        }
+                    )
+                }
+            }
+
+        }
+
 
         Row(
             modifier = Modifier.padding(top = 3.dp)
@@ -252,7 +300,7 @@ fun AddressTextField(fieldName: String, value: String) {
                     )
                 )
                 OutlinedTextField(
-                    value = "57000",
+                    value = postcode,
                     onValueChange = {},
 //            placeholder = { Text(placeholder,fontSize = 13.sp) },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -292,7 +340,7 @@ fun AddressTextField(fieldName: String, value: String) {
                     )
                 )
                 OutlinedTextField(
-                    value = "Kuala Lumpur",
+                    value = state,
                     onValueChange = {},
 //            placeholder = { Text(placeholder,fontSize = 13.sp) },
                     colors = OutlinedTextFieldDefaults.colors(
