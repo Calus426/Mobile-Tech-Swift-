@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.tarumt.techswift.Model.Request
+import com.tarumt.techswift.Model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,16 +63,16 @@ class UserHistoryViewModel : ViewModel() {
     }
 
     fun loadPendingRequest() {
-        currentUserId?.let { userId->
+        currentUserId?.let { userId ->
             val db = Firebase.firestore
             val collectionRef = db.collection("requests")
 
             pendingListener?.remove()
 
             pendingListener = collectionRef
-                .whereEqualTo("userId",userId)
+                .whereEqualTo("userId", userId)
                 .whereEqualTo("pending", true)
-                .orderBy("createdTime",Query.Direction.DESCENDING)
+                .orderBy("createdTime", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, error ->
                     if (error != null) {
                         Log.e("Firestore", "Listen failed.", error)
@@ -81,8 +82,7 @@ class UserHistoryViewModel : ViewModel() {
                     if (querySnapshot != null && !querySnapshot.isEmpty) {
                         val pendingRequests = querySnapshot.toObjects(Request::class.java)
                         updatePendingRequestList(pendingRequests)
-                    }
-                    else{
+                    } else {
 
                         updatePendingRequestList(emptyList<Request>().toMutableList())
                     }
@@ -94,33 +94,35 @@ class UserHistoryViewModel : ViewModel() {
     }
 
     fun loadInProgressRequest() {
-        val db = Firebase.firestore
-        val collectionRef = db.collection("requests")
+        currentUserId?.let { userId ->
+            val db = Firebase.firestore
+            val collectionRef = db.collection("requests")
 
-        inProgressListener?.remove()
+            inProgressListener?.remove()
 
-        inProgressListener = collectionRef
-            .whereEqualTo("pending", false)
-            .whereEqualTo("done", false)  // Added this condition
-            .orderBy("createdTime",Query.Direction.DESCENDING)
-            .addSnapshotListener { querySnapshot, error ->
-                if (error != null) {
-                    Log.e("Firestore", "Listen failed.", error)
-                    return@addSnapshotListener
+            inProgressListener = collectionRef
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("pending", false)
+                .whereEqualTo("done", false)  // Added this condition
+                .orderBy("createdTime", Query.Direction.DESCENDING)
+                .addSnapshotListener { querySnapshot, error ->
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error)
+                        return@addSnapshotListener
+                    }
+
+                    if (querySnapshot != null && !querySnapshot.isEmpty) {
+                        val inProgressRequest = querySnapshot.toObjects(Request::class.java)
+                        updateInProgressRequestList(inProgressRequest)
+                    } else {
+
+                        updateInProgressRequestList(emptyList<Request>().toMutableList())
+                    }
+
                 }
-
-                if (querySnapshot != null && !querySnapshot.isEmpty) {
-                    val inProgressRequest = querySnapshot.toObjects(Request::class.java)
-                    updateInProgressRequestList(inProgressRequest)
-                }
-                else{
-
-                    updateInProgressRequestList(emptyList<Request>().toMutableList())
-                }
-
-            }
-
+        }
     }
+
 
     fun updatePendingRequestList(pendingRequests: MutableList<Request>) {
         _uiState.update { currentState ->
@@ -128,6 +130,7 @@ class UserHistoryViewModel : ViewModel() {
         }
 
     }
+
     fun updateInProgressRequestList(inProgressRequest: MutableList<Request>) {
         _uiState.update { currentState ->
             currentState.copy(inProgressList = inProgressRequest.toMutableList())
@@ -141,11 +144,36 @@ class UserHistoryViewModel : ViewModel() {
         }
     }
 
-    fun updateToastMessage(text : String) {
+    fun updateToastMessage(text: String) {
         _uiState.update { currentState ->
             currentState.copy(toastMessage = text)
         }
     }
 
+    fun updateTechnicianName(name : String){
+        _uiState.update { currentState ->
+            currentState.copy(technicianName = name)
+        }
+    }
+
+    fun getTechnicianName(technicianId: String){
+
+        Firebase.firestore.collection("users")
+            .document(technicianId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    user?.let {
+                        updateTechnicianName(user.name)
+                    }
+                } else {
+                    Log.d("Firestore", "No such document")
+                }
+
+            }.addOnFailureListener { exception ->
+                Log.e("Firestore", "Failed to fetch user", exception)
+            }
+    }
 }
 

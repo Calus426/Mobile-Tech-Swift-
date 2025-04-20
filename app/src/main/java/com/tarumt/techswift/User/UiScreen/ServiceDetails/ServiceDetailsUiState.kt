@@ -8,6 +8,8 @@ data class ServiceDetailsUiState(
     val textDescription : String = "",
     val pictureDescription : Uri? = null,
     val picturePath : String = "",
-    val offeredPrice : String = ""
+    val offeredPrice : String = "0.0",
+    val descriptionError: Boolean = false,
+    val priceError: Boolean = false
 
 )

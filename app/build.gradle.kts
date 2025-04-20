@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.accompanist.swiperefresh)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.lottie.compose) //lottie animation
 }
 
 secrets{

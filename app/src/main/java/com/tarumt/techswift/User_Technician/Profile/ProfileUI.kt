@@ -34,12 +34,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +50,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.tarumt.techswift.R
 import com.tarumt.techswift.User.Datasource.genderList
 import com.tarumt.techswift.ui.theme.GreenBackground
@@ -63,6 +71,16 @@ import kotlinx.coroutines.flow.debounce
 fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     val uiState = profileViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(true) }
+
+
+
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(uiState.value.oriProfile.profileAvatar)
+            .crossfade(true)
+            .build()
+    )
 
 
     LaunchedEffect(Unit) {
@@ -72,141 +90,180 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                 profileViewModel.loadAddressSuggestion(context)
             }
     }
+
+   LaunchedEffect(painter.state){
+       when(painter.state){
+           is AsyncImagePainter.State.Success -> isLoading = false
+           else -> Unit
+       }
+   }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Profile Image (overlapping top bar from MainScreen)
+
+        //Check if the image loaded , if not the show loading
 
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Box {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight(0.1f)
-                        .fillMaxWidth()
-                        .background(GreenBackground)
-                )
-
-                Image(
-                    painter = painterResource(id = R.drawable.gem),
-                    contentDescription = "Profile Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .align(Alignment.TopCenter)
-                        .clip(CircleShape)
-                        .border(4.dp, Color.White, CircleShape)
-                )
-
-            }
-
-            Box(
-                Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.8f),
-                ) {
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            bottom = 3.dp,
-                            start = 10.dp,
-                            end = 10.dp
-                        )
-                    )
-
-                    ProfileTextField(
-                        "Name",
-                        profileViewModel.name,
-                        onValueChange = { profileViewModel.nameUpdate(it) }
-                    )
-
-
-                    ProfileTextField(
-                        "Email",
-                        profileViewModel.email,
-                        onValueChange = { profileViewModel.emailUpdate(it) }
-                    )
-
-                    ProfileTextField(
-                        "Phone",
-                        profileViewModel.phone,
-                        onValueChange = { profileViewModel.phoneUpdate(it) }
-                    )
-
-                    DropdownSelection(
-                        "Gender",
-                        onValueChange = { profileViewModel.genderUpdate(it) }
-                    )
-                    AddressTextField(
-                        "Address",
-                        profileViewModel.address,
-                        profileViewModel.postcode,
-                        profileViewModel.state,
-                        onValueChange = {
-                            profileViewModel.addressUpdate(it)
-                        },
-                        uiState.value.addressSuggestion,
-                        onDropdownClick = {
-                            profileViewModel.updateFullAdress(it)
-
-                            profileViewModel.loadAndFillAddress(
-                                address = it,
-                                context = context
-                            )
-                        }
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            bottom = 8.dp,
-                            start = 10.dp,
-                            end = 10.dp,
-                            top = 6.dp
-                        )
-                    )
-
-                    Button(
-                        onClick = {
-                            profileViewModel.updateProfileDetails(context)
-                        },
+            if (!isLoading) {
+                Box {
+                    Box(
                         modifier = Modifier
+                            .fillMaxHeight(0.1f)
                             .fillMaxWidth()
-                            .padding(horizontal = 15.dp),
-                        colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
-                    ) {
-                        Text(
-                            text = "Save",
-                            fontFamily = FontFamily(
-                                Font(
-                                    googleFont = GoogleFont("Poppins"),
-                                    fontProvider = provider,
-                                    weight = FontWeight.Bold
-                                )
-                            ),
-                            fontSize = 20.sp
-                        )
-                    }
+                            .background(GreenBackground)
+                    )
 
+                    Image(
+                        painter = painter,
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .align(Alignment.TopCenter)
+                            .clip(CircleShape)
+                            .border(4.dp, Color.White, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
 
-                    // Add more profile content here
                 }
 
+
+                Box(
+                    Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.8f),
+                    ) {
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                bottom = 3.dp,
+                                start = 10.dp,
+                                end = 10.dp,
+                                top = 5.dp
+                            )
+                        )
+
+                        ProfileTextField(
+                            "Name",
+                            profileViewModel.name,
+                            onValueChange = { profileViewModel.nameUpdate(it) }
+                        )
+
+
+                        ProfileTextField(
+                            "Email",
+                            profileViewModel.email,
+                            onValueChange = { profileViewModel.emailUpdate(it) }
+                        )
+
+                        ProfileTextField(
+                            "Phone",
+                            profileViewModel.phone,
+                            onValueChange = { profileViewModel.phoneUpdate(it) }
+                        )
+
+                        DropdownSelection(
+                            "Gender",
+                            onValueChange = { profileViewModel.genderUpdate(it) }
+                        )
+                        AddressTextField(
+                            "Address",
+                            profileViewModel.address,
+                            profileViewModel.postcode,
+                            profileViewModel.state,
+                            onValueChange = {
+                                profileViewModel.addressUpdate(it)
+                            },
+                            uiState.value.addressSuggestion,
+                            onDropdownClick = {
+                                profileViewModel.updateFullAdress(it)
+
+                                profileViewModel.loadAndFillAddress(
+                                    address = it,
+                                    context = context
+                                )
+                            }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                bottom = 8.dp,
+                                start = 10.dp,
+                                end = 10.dp,
+                                top = 6.dp
+                            )
+                        )
+
+                        Button(
+                            onClick = {
+                                profileViewModel.updateProfileDetails(context)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
+                        ) {
+                            Text(
+                                text = "Save",
+                                fontFamily = FontFamily(
+                                    Font(
+                                        googleFont = GoogleFont("Poppins"),
+                                        fontProvider = provider,
+                                        weight = FontWeight.Bold
+                                    )
+                                ),
+                                fontSize = 20.sp
+                            )
+                        }
+
+
+                        // Add more profile content here
+                    }
+
+                }
+
+            } else {
+
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
+                val progress by animateLottieCompositionAsState(
+                    composition=composition,
+                    iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
+                    speed = 1.3f
+                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painter,
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .alpha(0f),
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(180.dp)
+                    )
+                }
             }
         }
 
 
     }
-
-
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

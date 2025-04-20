@@ -1,5 +1,6 @@
 package com.tarumt.techswift.User.UiScreen.History
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -51,7 +52,8 @@ import com.tarumt.techswift.Model.Service
 import com.tarumt.techswift.ui.theme.provider
 
 @Composable
-fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
+fun UserHistoryUI(
+    viewModel: UserHistoryViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -98,29 +100,27 @@ fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
                 modifier = Modifier.padding(16.dp)
             ) {
                 StatusSelection(
-                    onStatusSelected = {statusScreen = it},
+                    onStatusSelected = { statusScreen = it },
                     currentStatus = statusScreen
                 )
 
                 LazyColumn {
 
-                    if(statusScreen.equals("inProgress")){
-                        items(uiState.inProgressList){ inProgress ->
-                            val service =serviceList[inProgress.serviceId]
-                            ServiceCard(inProgress,service)
+                    if (statusScreen.equals("inProgress")) {
+                        items(uiState.inProgressList) { inProgress ->
+                            val service = serviceList[inProgress.serviceId]
+                            ServiceCard(inProgress, service,viewModel,uiState)
                         }
-                    }
-                    else{
-                        items(uiState.pendingList){ pending ->
-                            val service =serviceList[pending.serviceId]
-                            ServiceCard(pending,service)
+                    } else {
+                        items(uiState.pendingList) { pending ->
+                            val service = serviceList[pending.serviceId]
+                            ServiceCard(pending, service,viewModel,uiState)
                         }
                     }
 
 
                 }
             }
-
 
 
         }
@@ -130,12 +130,14 @@ fun UserHistoryUI( viewModel : UserHistoryViewModel = viewModel()
 }
 
 
-
+@SuppressLint("DefaultLocale")
 @Composable
 fun ServiceCard(
     request: Request,
-    service : Service
-){
+    service: Service,
+    viewModel: UserHistoryViewModel,
+    uiState: UserHistoryUiState,
+) {
 
 
     Card(
@@ -147,66 +149,59 @@ fun ServiceCard(
             .height(154.dp)
     ) {
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 7.dp,end =2.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 7.dp, end = 2.dp)
+        ) {
+
+            Card(
+                shape = RoundedCornerShape(30.dp),
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .fillMaxHeight(0.7f)
+                    .fillMaxWidth(0.3f),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+
+            ) {
+                Image(
+                    painter = painterResource(service.image),
+                    contentDescription = stringResource(id = service.label),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(start = 15.dp, top = 6.dp)
             ) {
 
-                Card(
-                    shape = RoundedCornerShape(30.dp),
-                    modifier = Modifier
-                        .padding(top = 30.dp)
-                        .fillMaxHeight(0.7f)
-                        .fillMaxWidth(0.3f),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                Text(
+                    text = stringResource(id = service.label) + " Service",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 15.sp
+                    ),
+                    textAlign = TextAlign.Start
+                )
 
-                ){
-                    Image(
-                        painter = painterResource(service.image),
-                        contentDescription = stringResource(id = service.label),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp)
 
+                Text(
+                    text = "RM " + String.format("%.2f", request.offeredPrice ?: 0.00),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 14.sp
                     )
-                }
+                )
 
-                Column(
-                    modifier = Modifier.padding(start = 15.dp)
-                ){
-                    Row{
-                        Column(
-                            modifier = Modifier
-                                .weight(0.7f)
-                        ) {
-                            Text(
-                                text = stringResource(id = service.label)+" Service",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 15.sp
-                                ),
-                                textAlign = TextAlign.Start
-                            )
 
-                        }
-
-                        Column{
-                            Text(
-                                text ="RM "+ request.offeredPrice.toString(),
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 14.sp
-                                )
-                            )
-
-                        }
-
-                    }
-
+                if(request.pending == false){
+                    viewModel.getTechnicianName(request.technicianId)
                     Text(
-                        text = "Order Accpeted by Technician Chong",
+                        text = "Order Accpeted by Technician "+ uiState.technicianName ,
                         color = Color(0xFFC6C6C6),
                         fontFamily = FontFamily(
                             Font(
@@ -220,9 +215,10 @@ fun ServiceCard(
                     )
                 }
 
-
             }
 
+
+        }
 
 
     }
@@ -249,7 +245,7 @@ fun StatusSelection(
 
     ) {
         Row(
-            modifier =Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -258,13 +254,13 @@ fun StatusSelection(
             Box(
                 modifier = Modifier
                     .clickable(
-                        onClick = {onStatusSelected("inProgress") },
+                        onClick = { onStatusSelected("inProgress") },
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp),
 
-            ) {
+                ) {
                 Text(
                     text = "In progress",
                     color =
@@ -284,7 +280,7 @@ fun StatusSelection(
             )
             Box(
                 modifier = Modifier
-                    .clickable (
+                    .clickable(
                         onClick = { onStatusSelected("pending") },
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -310,8 +306,8 @@ fun StatusSelection(
 
 @Preview
 @Composable
-fun HistoryPreview(){
-    val userHistoryViewModel : UserHistoryViewModel = viewModel()
+fun HistoryPreview() {
+    val userHistoryViewModel: UserHistoryViewModel = viewModel()
     UserHistoryUI(userHistoryViewModel)
 }
 

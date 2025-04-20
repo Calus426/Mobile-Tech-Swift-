@@ -1,12 +1,15 @@
 package com.tarumt.techswift.User.UiScreen.ServiceDetails
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +23,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,13 +30,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -59,6 +59,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.tarumt.techswift.BuildConfig
 import com.tarumt.techswift.R
 import java.io.File
@@ -66,17 +71,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Objects
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun ServiceDetailsUI(
-    serviceDetailsViewModel : ServiceDetailsViewModel = viewModel(),
-    onSubmitRequestClicked : (String) -> Unit
-){
+    serviceDetailsViewModel: ServiceDetailsViewModel = viewModel(),
+    onSubmitRequestClicked: (String) -> Unit
+) {
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var showProcessingDialog by remember { mutableStateOf(false)}
-    var enable by remember{ mutableStateOf(true)}
-    var navigate by remember{ mutableStateOf(false)}
+    var showProcessingDialog by remember { mutableStateOf(false) }
+    var enable by remember { mutableStateOf(true) }
+    var navigate by remember { mutableStateOf(false) }
 
     Box(
         Modifier
@@ -90,17 +96,21 @@ fun ServiceDetailsUI(
                 .padding(1.dp),
             shape = RoundedCornerShape(30.dp), // Rounded corners
             elevation = CardDefaults.cardElevation(4.dp),
+
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
 
             Column(
-                modifier = Modifier.fillMaxWidth()
-            ){
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(if (showProcessingDialog) 0.3f else 1f)
+            ) {
                 TextDescription(
                     serviceDetailsViewModel.userDescription,
-                    onDescriptionChange = {serviceDetailsViewModel.descriptionUpdate(it)},
-                    enable = enable
-                    )
+                    onDescriptionChange = { serviceDetailsViewModel.descriptionUpdate(it) },
+                    enable = enable,
+                    descriptionError = serviceDetailsUiState.descriptionError
+                )
 
                 Spacer(modifier = Modifier.height(5.dp))
 
@@ -109,8 +119,10 @@ fun ServiceDetailsUI(
                     onPriceChange = {
                         if (it.all { char -> char.isDigit() }) {
                             serviceDetailsViewModel.priceUpdate(it)
-                        }},
-                    enable = enable
+                        }
+                    },
+                    enable = enable,
+                    priceError = serviceDetailsUiState.priceError
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -129,16 +141,18 @@ fun ServiceDetailsUI(
                         .fillMaxHeight(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Bottom
-                ){
+                ) {
                     Button(
                         modifier = Modifier.padding(end = 5.dp, bottom = 5.dp),
                         enabled = enable,
                         onClick = {
-                            showProcessingDialog = true
-                            enable = false
-                            serviceDetailsViewModel.savePictureDescription(context) {
-                                showProcessingDialog = false
-                                navigate = true
+                            if (serviceDetailsViewModel.validateInputs()) {
+                                showProcessingDialog = true
+                                enable = false
+                                serviceDetailsViewModel.savePictureDescription(context) {
+                                    showProcessingDialog = false
+                                    navigate = true
+                                }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
@@ -147,18 +161,30 @@ fun ServiceDetailsUI(
                     }
                 }
             }
+
+
         }
-        if(showProcessingDialog){
-            CircularProgressIndicator(color = Color.White,
-                strokeWidth = 4.dp,
-                modifier = Modifier
-                    .wrapContentSize(Alignment.Center)
-                    .size(50.dp)
+
+        if (showProcessingDialog) {
+            BackHandler(enabled = true) {
+                // Do nothing → this disables the back button
+            }
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
+                speed = 1.3f
             )
+            LottieAnimation(
+                composition = composition,
+                progress = { progress },
+                modifier = Modifier.size(180.dp)
+            )
+
         }
-       if(navigate){
-           onSubmitRequestClicked("Service request added successfully!")
-       }
+        if (navigate) {
+            onSubmitRequestClicked("Service request added successfully!")
+        }
 
     }
 }
@@ -166,15 +192,16 @@ fun ServiceDetailsUI(
 
 @Composable
 fun TextDescription(
-    descriptionText:String = "",
+    descriptionText: String = "",
     onDescriptionChange: (String) -> Unit,
-    enable : Boolean
-    ){
+    enable: Boolean,
+    descriptionError : Boolean
+) {
     Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 9.dp, top = 15.dp, bottom = 2.dp, end = 9.dp)
-            ){
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 9.dp, top = 15.dp, bottom = 2.dp, end = 9.dp)
+    ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Describe your problem",
@@ -192,16 +219,23 @@ fun TextDescription(
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
-                unfocusedBorderColor = Color.Black.copy(alpha =0.2f),
-                focusedBorderColor = Color.Black.copy(alpha =0.2f)
+                unfocusedBorderColor = Color.Black.copy(alpha = 0.2f),
+                focusedBorderColor = Color.Black.copy(alpha = 0.2f)
             ),
             placeholder = {
                 Text(text = "Description")
             },
-            enabled = enable
-
-
+            enabled = enable,
+            isError = descriptionError
         )
+        if (descriptionError) {
+            Text(
+                text = "Description cannot be empty!",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+            )
+        }
     }
 
 }
@@ -210,8 +244,9 @@ fun TextDescription(
 fun PriceOffer(
     price: String,
     onPriceChange: (String) -> Unit = {},
-    enable: Boolean
-){
+    enable: Boolean,
+    priceError: Boolean
+) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -245,14 +280,24 @@ fun PriceOffer(
             ),
             readOnly = !enable,
             prefix = { Text("RM ") },
-            placeholder = {Text("0.0")},
-            label = {Text("Amount")},
+            placeholder = { Text("0.0") },
+            label = { Text("Amount") },
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.Black.copy(alpha =0.2f),
-                focusedBorderColor = Color.Black.copy(alpha =0.2f)
+                unfocusedBorderColor = Color.Black.copy(alpha = 0.2f),
+                focusedBorderColor = Color.Black.copy(alpha = 0.2f)
             ),
+            isError = priceError
         )
+
+        if (priceError) {
+            Text(
+                text = "Price offered cannot be 0!",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+            )
+        }
     }
 }
 
@@ -260,7 +305,7 @@ fun PriceOffer(
 private fun PictureDescription(
     serviceDetailsViewModel: ServiceDetailsViewModel,
     uiState: ServiceDetailsUiState,
-    button: Boolean
+    enable: Boolean
 
 ) {
     val context = LocalContext.current
@@ -292,7 +337,7 @@ private fun PictureDescription(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
-    ){
+    ) {
 
         Text(
             text = "Take Picture of your problem",
@@ -309,7 +354,7 @@ private fun PictureDescription(
                 )
                 .fillMaxWidth(0.7f),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             if (uiState.pictureDescription?.path?.isNotEmpty() == true) {
                 Image(
                     modifier = Modifier
@@ -318,14 +363,14 @@ private fun PictureDescription(
                     painter = rememberAsyncImagePainter(uiState.pictureDescription),
                     contentDescription = null
                 )
-            }
-            else{
+            } else {
                 Image(
                     modifier = Modifier
                         .padding(vertical = 5.dp)
                         .heightIn(max = 150.dp),
                     painter = painterResource(R.drawable.emptyimage),
                     contentDescription = null
+
                 )
             }
         }
@@ -342,7 +387,7 @@ private fun PictureDescription(
                     permissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             },
-            enabled = button,
+            enabled = enable,
             colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
         ) {
             Text(text = "Capture Image From Camera")

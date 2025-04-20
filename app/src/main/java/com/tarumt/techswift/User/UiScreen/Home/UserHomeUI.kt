@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -81,7 +82,8 @@ fun UserHomeUI(
                     columns = GridCells.Fixed(2), // 2 columns grid
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(16.dp) // Optional: consistent padding
                 ) {
                     items(homeUiState.listOfService.size){ index ->
 
@@ -102,7 +104,8 @@ fun ServiceItem(service : Service, modifier: Modifier = Modifier,
     Column(
         modifier = Modifier
             .clickable { onServiceClick(service) }
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+            .padding(bottom = 8.dp)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
             Image(
@@ -116,7 +119,8 @@ fun ServiceItem(service : Service, modifier: Modifier = Modifier,
             Text(
                 text = stringResource(id = service.label),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Black
+                color = Color.Black,
+                fontSize = 15.sp
             )
     }
 }

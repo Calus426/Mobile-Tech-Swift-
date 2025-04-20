@@ -33,8 +33,6 @@ class ServiceDetailsViewModel : ViewModel() {
     var count by mutableStateOf(0)
         private set
 
-    private var authStateListener: FirebaseAuth.AuthStateListener? = null
-    private val auth = FirebaseAuth.getInstance()
 
     fun descriptionUpdate(description : String){
         userDescription = description
@@ -178,5 +176,19 @@ class ServiceDetailsViewModel : ViewModel() {
         loadCount()
     }
 
+    //validate
+    fun validateInputs(): Boolean {
+        val isDescriptionValid = userDescription.isNotBlank()
+        val isPriceValid = offeredPrice.toDoubleOrNull()?.let { it > 0.0 } ?: false
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                descriptionError = !isDescriptionValid,
+                priceError = !isPriceValid
+            )
+        }
+
+        return isDescriptionValid && isPriceValid
+    }
 
 }

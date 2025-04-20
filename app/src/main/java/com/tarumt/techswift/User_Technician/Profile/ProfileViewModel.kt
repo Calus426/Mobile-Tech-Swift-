@@ -53,6 +53,30 @@
             private set
 
         val currentUser get() = auth.currentUser
+
+        init{
+            previousUser = auth.currentUser  // Initialize with current user
+            setupAuthListener()
+            getUserProfile()
+        }
+
+        private fun setupAuthListener() {
+            authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+                val currentUser = firebaseAuth.currentUser
+
+                when {
+                    // New user logged in or switched accounts
+                    currentUser != null && currentUser.uid != previousUser?.uid -> {
+                        previousUser = currentUser
+                        resetProfile()
+                    }
+
+                    // No change (ignore)
+                    else -> Unit
+                }
+            }
+            auth.addAuthStateListener(authStateListener!!)
+        }
     
     
         fun nameUpdate(it : String){
@@ -170,7 +194,8 @@
                                 address = it.address1
                                 postcode = it.postcode
                                 state = it.state
-    
+
+                                Log.d("Firestore", "Sucess to fetch user")
                             }
                         } else {
                             Log.d("Firestore", "No such document")
@@ -304,40 +329,14 @@
             address = ""
             postcode = ""
             state = ""
-    
+
             // Reset UI state
             _uiState.update { ProfileUiState() }
-    
+
             // Reload profile for new user
             getUserProfile()
         }
 
 
-        private fun setupAuthListener() {
-            authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-                val currentUser = firebaseAuth.currentUser
 
-                when {
-                    // New user logged in or switched accounts
-                    currentUser != null && currentUser.uid != previousUser?.uid -> {
-                        previousUser = currentUser
-                        resetProfile()
-                    }
-
-                    // No change (ignore)
-                    else -> Unit
-                }
-            }
-            auth.addAuthStateListener(authStateListener!!)
-        }
-
-
-        init{
-            previousUser = auth.currentUser  // Initialize with current user
-            setupAuthListener()
-            getUserProfile()
-        }
-    
-    
-    
     }
