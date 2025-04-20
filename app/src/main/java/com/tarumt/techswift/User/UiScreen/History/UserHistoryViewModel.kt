@@ -150,13 +150,8 @@ class UserHistoryViewModel : ViewModel() {
         }
     }
 
-    fun updateTechnicianName(name : String){
-        _uiState.update { currentState ->
-            currentState.copy(technicianName = name)
-        }
-    }
 
-    fun getTechnicianName(technicianId: String){
+    fun getTechnicianDetails(technicianId: String){
 
         Firebase.firestore.collection("users")
             .document(technicianId)
@@ -165,7 +160,13 @@ class UserHistoryViewModel : ViewModel() {
                 if (document.exists()) {
                     val user = document.toObject(User::class.java)
                     user?.let {
-                        updateTechnicianName(user.name)
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                technicianName = it.name,
+                                technicianPhone = it.phone
+                            )
+                        }
+
                     }
                 } else {
                     Log.d("Firestore", "No such document")

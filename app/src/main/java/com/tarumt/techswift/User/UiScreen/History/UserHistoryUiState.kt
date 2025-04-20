@@ -7,5 +7,6 @@ data class UserHistoryUiState(
     val pendingList: List<Request> = emptyList(),
     val count : Int = 0,
     val toastMessage: String = "",
-    val technicianName : String = ""
+    val technicianName : String = "",
+    val technicianPhone : String = ""
 )

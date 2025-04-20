@@ -52,6 +52,9 @@
         var state by mutableStateOf("")
             private set
 
+        var profileAvatar by mutableStateOf("")
+            private set
+
         val currentUser get() = auth.currentUser
 
         init{
@@ -60,6 +63,7 @@
             getUserProfile()
         }
 
+        //Setup Listener to monitor acc changes
         private fun setupAuthListener() {
             authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
                 val currentUser = firebaseAuth.currentUser
@@ -108,7 +112,7 @@
         }
     
     
-    
+    //Update the full address in uistate
         fun updateFullAdress(fullAddress: String ){
             _uiState.update { currentState ->
                 currentState.copy(
@@ -116,6 +120,8 @@
                 )
             }
         }
+
+        //update the user changes on profile details
         fun updateProfileDetails(context: Context) {
     
             //update the current profile value.
@@ -129,13 +135,16 @@
                         address1 = address,
                         postcode = postcode,
                         state = state,
-                        fullAddress = _uiState.value.fullAddress
+                        fullAddress = _uiState.value.fullAddress,
+                        profileAvatar = profileAvatar
                     )
                 )
             }
+
             //check the updated and ori different
             val updates = _uiState.value.oriProfile.getUpdatedFieldsMap(_uiState.value.updatedProfile)
-    
+
+            //update the profile details
             if (updates.isNotEmpty()) {
                 currentUser?.let {
                     Firebase.firestore.collection("users")
@@ -145,7 +154,9 @@
                             //update the updated profile to ori and clear the updated for next time use
                             _uiState.update { currentState ->
                                 currentState.copy(
+                                    //replace latest to oriProfile
                                     oriProfile = _uiState.value.updatedProfile,
+                                    //clear the updatedProfile for next time usage.
                                     updatedProfile = User()
                                 )
                             }
@@ -169,9 +180,11 @@
                 if (updated.postcode != postcode) put("postcode", updated.postcode)
                 if (updated.state.isNotEmpty() && updated.state != state) put("state", updated.state)
                 if (updated.fullAddress.isNotEmpty() && updated.fullAddress != fullAddress) put("fullAddress", updated.fullAddress)
+                if (updated.profileAvatar != profileAvatar) put("profileAvatar", updated.profileAvatar)
             }
         }
-    
+
+        //Get user profile details from firebase
         fun getUserProfile(){
             currentUser?.let {
                 Firebase.firestore.collection("users")
@@ -194,6 +207,7 @@
                                 address = it.address1
                                 postcode = it.postcode
                                 state = it.state
+                                profileAvatar = it.profileAvatar
 
                                 Log.d("Firestore", "Sucess to fetch user")
                             }
@@ -206,7 +220,8 @@
                     }
             }
         }
-    
+
+        //Fetch and Pop suggestion from PlacesAPI(autocomplete) when users type address
         fun loadAddressSuggestion(context: Context){
     
             val placesClient = Places.createClient(context)
@@ -216,7 +231,7 @@
                 val request = FindAutocompletePredictionsRequest.builder()
                     .setSessionToken(token)
                     .setQuery(address)
-                    .setCountries(listOf("MY")) // 🔒 Restrict to Malaysia
+                    .setCountries(listOf("MY"))
                     .build()
     
                 placesClient.findAutocompletePredictions(request)
@@ -244,7 +259,8 @@
                 }
             }
         }
-    
+
+        //Fetch the address details from PlacesAPI(text search) and auto insert to address field.
         fun loadAndFillAddress(address : String,context: Context){
             val placeFields = listOf(Place.Field.ADDRESS_COMPONENTS,)
     
@@ -267,27 +283,7 @@
                         var state = ""
                         val builder = StringBuilder()
                         var foundLocality = false
-    
-    //                    addressComponents.forEach { component ->
-    //                        when {
-    //                            // Combine street number and route for the full address
-    //                            component.types.contains("street_number") || component.types.contains("route")||component.types.contains("sublocality") -> {
-    //                               if( component.types.contains("street_number") && component.name.isNotEmpty()){
-    //                                   fullAddress += "${component.name}, "
-    //                               }
-    //                                else
-    //                                fullAddress += "${component.name}, "
-    //                            }
-    //                            // Extract the postcode
-    //                            component.types.contains("postal_code") -> {
-    //                                postcode = component.name
-    //                            }
-    //                            // Extract state (administrative_area_level_1 or locality)
-    //                            component.types.contains("locality") || component.types.contains("administrative_area_level_1") -> {
-    //                                state = component.name
-    //                            }
-    //                        }
-    //                    }
+
     
                         for(component in addressComponents) {
                             if (!foundLocality) {
@@ -319,7 +315,8 @@
                     Log.e("AddressAutocomplete", "Failed to load predictions", exception)
                 }
         }
-    
+
+
         fun resetProfile() {
             // Clear all mutable states
             name = ""

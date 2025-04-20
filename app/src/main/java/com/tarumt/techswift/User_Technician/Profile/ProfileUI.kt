@@ -538,16 +538,15 @@ private fun ProfileTextField(fieldName: String, value: String, onValueChange: (S
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-//            placeholder = { Text(placeholder,fontSize = 13.sp) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFFe0d4d4),
                 unfocusedContainerColor = Color(0xFFe0d4d4)
             ),
             modifier = Modifier
-                .height(45.dp),
+                .height(47.dp),
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
-            textStyle = TextStyle(fontSize = 13.sp),
+            textStyle = TextStyle(fontSize = 12.sp)
         )
     }
 }

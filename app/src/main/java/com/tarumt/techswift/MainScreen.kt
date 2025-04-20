@@ -132,7 +132,8 @@ fun MainScreen(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
                                 authViewModel.signout()
 
                                             },
-                            uiState.value.oriProfile.profileAvatar
+                            uiState.value.oriProfile.profileAvatar,
+                            uiState.value.oriProfile.name
                         )
                     }
                 }
@@ -323,7 +324,8 @@ fun DrawerContent(
     navController: NavHostController,
     closeDrawer: () -> Unit,
     onLogoutClick: () -> Unit,
-    profileAvatar: String
+    profileAvatar: String,
+    name : String
 ) {
 
     Row(
@@ -368,7 +370,7 @@ fun DrawerContent(
                 color = Color(0xFFBAB4B4).copy(alpha = 0.85f)
             )
             Text(
-                text = "Gem",
+                text = name,
                 fontSize = 32.sp,
                 color = Color.White
             )

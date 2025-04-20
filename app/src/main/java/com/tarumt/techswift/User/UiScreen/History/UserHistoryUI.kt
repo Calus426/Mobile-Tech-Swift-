@@ -1,6 +1,9 @@
 package com.tarumt.techswift.User.UiScreen.History
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,16 +14,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +60,7 @@ import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Model.Service
 import com.tarumt.techswift.ui.theme.provider
+import okhttp3.internal.wait
 
 @Composable
 fun UserHistoryUI(
@@ -109,12 +120,12 @@ fun UserHistoryUI(
                     if (statusScreen.equals("inProgress")) {
                         items(uiState.inProgressList) { inProgress ->
                             val service = serviceList[inProgress.serviceId]
-                            ServiceCard(inProgress, service,viewModel,uiState)
+                            ServiceCard(inProgress, service, viewModel, uiState, context)
                         }
                     } else {
                         items(uiState.pendingList) { pending ->
                             val service = serviceList[pending.serviceId]
-                            ServiceCard(pending, service,viewModel,uiState)
+                            ServiceCard(pending, service, viewModel, uiState, context)
                         }
                     }
 
@@ -137,6 +148,7 @@ fun ServiceCard(
     service: Service,
     viewModel: UserHistoryViewModel,
     uiState: UserHistoryUiState,
+    context: Context
 ) {
 
 
@@ -198,21 +210,53 @@ fun ServiceCard(
                 )
 
 
-                if(request.pending == false){
-                    viewModel.getTechnicianName(request.technicianId)
-                    Text(
-                        text = "Order Accpeted by Technician "+ uiState.technicianName ,
-                        color = Color(0xFFC6C6C6),
-                        fontFamily = FontFamily(
-                            Font(
-                                googleFont = GoogleFont("Inter"),
-                                fontProvider = provider,
-                                weight = FontWeight.SemiBold
-                            )
-                        ),
-                        fontSize = 10.sp,
-                        lineHeight = 12.sp
-                    )
+                if (request.pending == false) {
+                    viewModel.getTechnicianDetails(request.technicianId)
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "Order accepted by Technician ${uiState.technicianName}",
+                            color = Color(0xFFC6C6C6),
+                            fontFamily = FontFamily(
+                                Font(
+                                    googleFont = GoogleFont("Inter"),
+                                    fontProvider = provider,
+                                    weight = FontWeight.SemiBold
+                                )
+                            ),
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp
+                        )
+
+                        Box(
+                            modifier = Modifier.padding(end = 8.dp,top = 2.dp)
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFD9D9D9)) // Green background
+                                    .clickable {
+                                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                                            data = Uri.parse("tel:${uiState.technicianPhone}")
+                                        }
+                                        context.startActivity(intent)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Phone,
+                                    contentDescription = "Call Technician",
+                                    tint = Color(0xFF008000),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                    }
                 }
 
             }
