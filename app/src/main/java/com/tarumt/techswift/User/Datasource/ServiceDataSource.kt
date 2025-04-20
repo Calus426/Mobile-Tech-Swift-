@@ -1,7 +1,7 @@
 package com.tarumt.techswift.User.Datasource
 
 import com.tarumt.techswift.R
-import com.tarumt.techswift.User.Model.Service
+import com.tarumt.techswift.Model.Service
 
 class ServiceDataSource {
     fun loadServices() : List<Service>{

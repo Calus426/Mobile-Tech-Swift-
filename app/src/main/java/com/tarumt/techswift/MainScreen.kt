@@ -1,6 +1,5 @@
 package com.tarumt.techswift
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -36,7 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -50,44 +50,51 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
+import com.tarumt.techswift.User_Technician.Profile.ProfileViewModel
 import com.tarumt.techswift.ui.theme.BottomBar
 import com.tarumt.techswift.ui.theme.GreenBackground
 import com.tarumt.techswift.ui.theme.provider
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
+    val authState = authViewModel.authState.observeAsState()
+
+    val role = authViewModel.role.observeAsState()
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val currentScreen = Navigation.valueOf(
-        navBackStackEntry?.destination?.route ?: Navigation.Home.name
-    )
+    val currentScreen = navBackStackEntry?.destination?.route?.let { route ->
+        Navigation.entries.firstOrNull { it.name == route }
+    }
 
     val navItemList = listOf(
         NavItem(
             stringResource(R.string.home),
             R.drawable.homeselected,
             R.drawable.homenonselected,
-            Navigation.Home.name
+            if(role.value=="U") Navigation.UserHome.name else Navigation.TechnicianHome.name
         ),
         NavItem(
             stringResource(R.string.history),
             R.drawable.orderselected,
             R.drawable.ordernonselected,
-            Navigation.History.name
+            Navigation.UserHistory.name
         )
     )
 
     val selectedButton = remember(currentRoute) {
-        navItemList.firstOrNull { it.route == currentRoute } ?: navItemList[0]
+        navItemList.firstOrNull { it.route == currentRoute }
     }
 
 
@@ -96,144 +103,182 @@ fun MainScreen(modifier: Modifier = Modifier) {
     )
     val scope = rememberCoroutineScope()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = GreenBackground
+    val showElement = currentRoute != Navigation.Login.name
+
+
+
+
+    if(authState.value == null || role.value == null){
+        return
+    }else{
+        if (showElement) {
+            val profileViewModel: ProfileViewModel = viewModel()
+            val uiState = profileViewModel.uiState.collectAsState()
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    ModalDrawerSheet(
+                        drawerContainerColor = GreenBackground
+                    ) {
+                        DrawerContent(
+                            navController,
+                            closeDrawer = {
+                                scope.launch {
+                                    drawerState.close()
+
+                                }
+                            },
+                            onLogoutClick = {
+                                authViewModel.signout()
+
+                                            },
+                            uiState.value.oriProfile.profileAvatar
+                        )
+                    }
+                }
             ) {
-                DrawerContent(
-                    navController,
-                    closeDrawer = {
-                        scope.launch {
-                            drawerState.close()
-
-                        }
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            containerColor = GreenBackground,
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                BottomNavigationBar(
-                    navItemList,
-                    selectedButton,
-                    currentRoute,
-                    navController
-                )
-            },
-            topBar = {
-                TopBarApp(
-                    currentScreen = currentScreen,
-                    navigateUp = { navController.navigateUp() },
-                    onOpenDrawer = {
-                        scope.launch {
-                            drawerState.apply {
-                                if (isClosed) open() else close()
+                Scaffold(
+                    containerColor = GreenBackground,
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        BottomNavigationBar(
+                            navItemList,
+                            selectedButton,
+                            currentRoute,
+                            navController
+                        )
+                    },
+                    topBar = {
+                        TopBarApp(
+                            currentScreen = currentScreen,
+                            navigateUp = { navController.navigateUp() },
+                            onOpenDrawer = {
+                                scope.launch {
+                                    drawerState.apply {
+                                        if (isClosed) open() else close()
+                                    }
+                                }
                             }
-                        }
-                    }
-                )
-            }
 
-        ) { innerPadding ->
+                        )
+                    }
+
+                ) { innerPadding ->
+                    Navigate(
+                        navController = navController,
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .zIndex(1f),
+                        authViewModel = authViewModel,
+                        profileViewModel = profileViewModel
+                    )
+
+                }
+            }
+        } else {
+            Scaffold(
+                containerColor = GreenBackground,
+                modifier = Modifier.fillMaxSize()
+            ) { innerPadding ->
                 Navigate(
                     navController = navController,
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .zIndex(1f)
+                        .padding(innerPadding),
+                    authViewModel = authViewModel
                 )
-
+            }
         }
     }
+
+
 
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarApp(
-    currentScreen: Navigation,
+    currentScreen: Navigation?,
     navigateUp: () -> Unit,
     onOpenDrawer: () -> Unit
 ) {
 
-    val fontName = GoogleFont("Poppins")
+    if (currentScreen != null && currentScreen != Navigation.Login) {
+        val fontName = GoogleFont("Poppins")
 
-    CenterAlignedTopAppBar(
-        modifier = Modifier
-            .height(95.dp),
-        title = {
-            Box(
-                modifier = Modifier.fillMaxHeight(), // Takes full height of AppBar
-                contentAlignment = Alignment.Center // Centers the Text both ways
-            ) {
-                Text(
-                    text = stringResource(currentScreen.title),
-                    color = Color.White,
-                    fontFamily = FontFamily(
-                        Font(
-                            googleFont = fontName,
-                            fontProvider = provider,
-                            weight = FontWeight.SemiBold
+        CenterAlignedTopAppBar(
+            modifier = Modifier
+                .height(95.dp),
+            title = {
+                Box(
+                    modifier = Modifier.fillMaxHeight(), // Takes full height of AppBar
+                    contentAlignment = Alignment.Center // Centers the Text both ways
+                ) {
+                    Text(
+                        text = stringResource(currentScreen.title),
+                        color = Color.White,
+                        fontFamily = FontFamily(
+                            Font(
+                                googleFont = fontName,
+                                fontProvider = provider,
+                                weight = FontWeight.SemiBold
+                            )
+                        ),
+                        fontSize = 20.sp
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = GreenBackground
+            ),
+            navigationIcon = {
+
+                if (currentScreen.canNavigate) {
+                    IconButton(
+                        onClick = navigateUp
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Navigate Back",
+                            tint = Color.White
                         )
-                    ),
-                    fontSize = 20.sp
-                )
+                    }
+                } else {
+                    IconButton(
+                        onClick = onOpenDrawer,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Menu",
+                            tint = Color.White,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                }
             }
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = GreenBackground
-        ),
-        navigationIcon = {
+        )
+    }
 
-            if (currentScreen.canNavigate) {
-                IconButton(
-                    onClick = navigateUp
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Navigate Back",
-                        tint = Color.White
-                    )
-                }
-            } else {
-                IconButton(
-                    onClick = onOpenDrawer,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = Color.White,
-                        modifier = Modifier.padding(10.dp)
-                    )
-                }
-            }
-        }
-    )
 
 }
 
 @Composable
 private fun BottomNavigationBar(
     navItemList: List<NavItem>,
-    selectedButton: NavItem,
+    selectedButton: NavItem?,
     currentRoute: String?,
     navController: NavHostController
 ) {
-    if(currentRoute!= Navigation.Profile.name){
+    if (currentRoute != Navigation.Profile.name) {
         NavigationBar(
             containerColor = BottomBar,
             modifier = Modifier.clip(RoundedCornerShape(25.dp))
         ) {
             navItemList.forEachIndexed { index, navItem ->
                 NavigationBarItem(
-                    selected = selectedButton.route == navItem.route,
+                    selected = selectedButton?.route == navItem.route,
                     onClick = {
                         if (currentRoute != navItem.route) {
-                            if (currentRoute == Navigation.ServiceDetails.name && navItem.route == Navigation.Home.name) {
+                            if (currentRoute == Navigation.ServiceDetails.name && navItem.route == Navigation.UserHome.name) {
                                 navController.popBackStack()
                             } else {
                                 navController.navigate(navItem.route) {
@@ -251,14 +296,14 @@ private fun BottomNavigationBar(
                     icon = {
                         Icon(
                             painter = painterResource(
-                                id = if (selectedButton.route == navItem.route) navItem.iconSelected
+                                id = if (selectedButton?.route == navItem.route) navItem.iconSelected
                                 else navItem.iconNonSelected
                             ),
                             contentDescription = navItem.label
                         )
                     },
                     label = {
-                        if (selectedButton.route == navItem.route) {
+                        if (selectedButton?.route == navItem.route) {
                             Text(text = navItem.label, color = Color.Black)
                         }
                     },
@@ -274,16 +319,34 @@ private fun BottomNavigationBar(
 }
 
 @Composable
-fun DrawerContent(navController: NavHostController, closeDrawer: () -> Unit) {
+fun DrawerContent(
+    navController: NavHostController,
+    closeDrawer: () -> Unit,
+    onLogoutClick: () -> Unit,
+    profileAvatar: String
+) {
 
     Row(
         modifier = Modifier.padding(30.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.gem),
+//        Image(
+//            painter = painterResource(id = R.drawable.gem),
+//            contentDescription = "Profile Picture",
+//            contentScale = ContentScale.Crop, // crops to fit the circle properly
+//            modifier = Modifier
+//                .size(70.dp)
+//                .clip(CircleShape)
+//                .border(
+//                    width = 3.dp,
+//                    color = Color.White,
+//                    shape = CircleShape
+//                )
+//        )
+        AsyncImage(
+            model = profileAvatar, // Directly pass Firebase Storage reference
             contentDescription = "Profile Picture",
-            contentScale = ContentScale.Crop, // crops to fit the circle properly
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(70.dp)
                 .clip(CircleShape)
@@ -291,7 +354,9 @@ fun DrawerContent(navController: NavHostController, closeDrawer: () -> Unit) {
                     width = 3.dp,
                     color = Color.White,
                     shape = CircleShape
-                )
+                ),
+            placeholder = painterResource(R.drawable.default_avatar), // Show while loading
+            error = painterResource(R.drawable.default_avatar) // Show if loading fails
         )
 
         Column(
@@ -376,15 +441,39 @@ fun DrawerContent(navController: NavHostController, closeDrawer: () -> Unit) {
             ),
             shape = RoundedCornerShape(0.dp),// Remove rounded corners
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        NavigationDrawerItem(
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_logout_24),
+                    contentDescription = "Logout",
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Logout",
+                    color = Color.White,
+                    fontSize = 21.sp
+                )
+            },
+            selected = false,
+            onClick = {
+                onLogoutClick()
+                closeDrawer()
+            },
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = Color.Transparent,  // No background on selection
+                unselectedContainerColor = Color.Transparent // No background when not selected
+            ),
+            shape = RoundedCornerShape(0.dp),// Remove rounded corners
+        )
     }
 
 
 }
 
-
-@Composable
-@Preview
-fun MainScreenPreview() {
-    MainScreen()
-}
 

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.tarumt.techswift.R
-import com.tarumt.techswift.User.Model.Service
+import com.tarumt.techswift.Model.Service
 
 @Composable
 fun UserHomeUI(
@@ -96,7 +96,7 @@ fun UserHomeUI(
 }
 
 @Composable
-fun ServiceItem(service : Service,modifier: Modifier = Modifier,
+fun ServiceItem(service : Service, modifier: Modifier = Modifier,
                 onServiceClick : (Service) -> Unit
 ){
     Column(

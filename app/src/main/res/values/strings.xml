@@ -12,4 +12,7 @@
     <string name="service_details">ServiceDetails</string>
     <string name="submit_service_request">Submit Service Request</string>
     <string name="profile">Profile</string>
+    <string name="login">Login</string>
+    <string name="signup">SignUp</string>
+    <string name="technician_home">TechnicianHome\n</string>
 </resources>

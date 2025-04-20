@@ -4,20 +4,18 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.AggregateSource
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
-import com.tarumt.techswift.User.Model.Request
-import com.tarumt.techswift.User.Model.Service
-import kotlinx.coroutines.delay
+import com.tarumt.techswift.Model.Request
+import com.tarumt.techswift.Model.Service
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +33,8 @@ class ServiceDetailsViewModel : ViewModel() {
     var count by mutableStateOf(0)
         private set
 
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
+    private val auth = FirebaseAuth.getInstance()
 
     fun descriptionUpdate(description : String){
         userDescription = description
@@ -109,13 +109,15 @@ class ServiceDetailsViewModel : ViewModel() {
 
     fun saveServiceRequest(){
         count ++
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
         val request : Request = Request(
             id = count,
             serviceId =_uiState.value.serviceSelected.id ,
             textDescription = _uiState.value.textDescription,
             pictureDescription = _uiState.value.picturePath,
             createdTime = Timestamp.now(),
-            offeredPrice = _uiState.value.offeredPrice.toDoubleOrNull()
+            offeredPrice = _uiState.value.offeredPrice.toDoubleOrNull(),
+            userId = userId
 
         )
         val dbRef = Firebase.firestore

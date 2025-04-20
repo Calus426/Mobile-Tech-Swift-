@@ -1,6 +1,6 @@
 package com.tarumt.techswift.User.UiScreen.History
 
-import com.tarumt.techswift.User.Model.Request
+import com.tarumt.techswift.Model.Request
 
 data class UserHistoryUiState(
     val inProgressList: List<Request> = emptyList(),

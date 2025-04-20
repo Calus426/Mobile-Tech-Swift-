@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Profile
+package com.tarumt.techswift.User_Technician.Profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,17 +25,20 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -51,14 +54,24 @@ import com.tarumt.techswift.R
 import com.tarumt.techswift.User.Datasource.genderList
 import com.tarumt.techswift.ui.theme.GreenBackground
 import com.tarumt.techswift.ui.theme.provider
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     val uiState = profileViewModel.uiState.collectAsState()
-
     val context = LocalContext.current
+
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { profileViewModel.address }
+            .debounce(300)
+            .collect { query ->
+                profileViewModel.loadAddressSuggestion(context)
+            }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -97,8 +110,8 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.8f),
                 ) {
 
                     HorizontalDivider(
@@ -139,15 +152,21 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                         profileViewModel.state,
                         onValueChange = {
                             profileViewModel.addressUpdate(it)
-                            profileViewModel.loadAddressSuggestion(context)
                         },
                         uiState.value.addressSuggestion,
-                        onDropdownClick = {profileViewModel.loadAndFillAddress(address = it,context=context)}
+                        onDropdownClick = {
+                            profileViewModel.updateFullAdress(it)
+
+                            profileViewModel.loadAndFillAddress(
+                                address = it,
+                                context = context
+                            )
+                        }
                     )
 
                     HorizontalDivider(
                         modifier = Modifier.padding(
-                            bottom = 3.dp,
+                            bottom = 8.dp,
                             start = 10.dp,
                             end = 10.dp,
                             top = 6.dp
@@ -159,8 +178,8 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                             profileViewModel.updateProfileDetails(context)
                         },
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .size(50.dp),
+                            .fillMaxWidth()
+                            .padding(horizontal = 15.dp),
                         colors = ButtonDefaults.buttonColors(Color(0xFF393D36))
                     ) {
                         Text(
@@ -202,9 +221,12 @@ fun AddressTextField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val focusManager = LocalFocusManager.current
     Column(
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier.padding(bottom = 3.dp)
+        modifier = Modifier
+            .padding(bottom = 3.dp)
+            .fillMaxWidth()
     ) {
         Text(
             fieldName,
@@ -237,14 +259,16 @@ fun AddressTextField(
         )
         ExposedDropdownMenuBox(
             expanded = expanded && suggestions.isNotEmpty(),
-            onExpandedChange = { expanded = it },
+            onExpandedChange = {
+                expanded = it
+            }
         ) {
             OutlinedTextField(
                 value = address,
-                onValueChange ={
+                onValueChange = {
                     onValueChange(it)
                     expanded = true
-                } ,
+                },
 //            placeholder = { Text(placeholder,fontSize = 13.sp) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFe0d4d4),
@@ -252,7 +276,8 @@ fun AddressTextField(
                 ),
                 modifier = Modifier
                     .height(45.dp)
-                    .menuAnchor(),
+                    .menuAnchor()
+                    .fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 textStyle = TextStyle(fontSize = 13.sp),
@@ -271,6 +296,7 @@ fun AddressTextField(
                         onClick = {
                             expanded = false
                             onDropdownClick(suggestion)
+                            focusManager.clearFocus()
                         }
                     )
                 }
@@ -280,10 +306,13 @@ fun AddressTextField(
 
 
         Row(
-            modifier = Modifier.padding(top = 3.dp)
+            modifier = Modifier
+                .padding(top = 3.dp)
+                .fillMaxWidth()
         ) {
             Column(
-                Modifier.fillMaxWidth(0.2f)
+                Modifier
+                    .weight(0.3f)
             ) {
                 Text(
                     text = "Postcode",
@@ -318,12 +347,9 @@ fun AddressTextField(
             // Spacer(modifier = Modifier.fillMaxWidth(0.1f))
 
             Column(
-                Modifier.fillMaxWidth(0.1f)
-            ) {
-
-            }
-            Column(
-                Modifier.fillMaxWidth(0.7f)
+                Modifier
+                    .weight(0.7f)
+                    .padding(start = 4.dp)
             ) {
                 Text(
                     text = "State",
@@ -355,10 +381,12 @@ fun AddressTextField(
                     readOnly = true
                 )
             }
-
         }
+
+
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

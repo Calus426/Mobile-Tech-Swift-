@@ -3,10 +3,11 @@ package com.tarumt.techswift.User.UiScreen.History
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import com.tarumt.techswift.User.Model.Request
+import com.tarumt.techswift.Model.Request
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,44 +19,77 @@ class UserHistoryViewModel : ViewModel() {
     private var pendingListener: ListenerRegistration? = null
     private var inProgressListener: ListenerRegistration? = null
 
+    private var currentUserId: String? = null
+
     init {
-        resetHistory()
-        loadPendingRequest()
-        loadInProgressRequest()
-        Log.d("Init","Initial")
+        setupAuthListener()
     }
 
+    private fun setupAuthListener() {
+        FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+            firebaseAuth.currentUser?.let { user ->
+                if (user.uid != currentUserId) {
+                    // User changed - reload everything
+                    currentUserId = user.uid
+                    resetAndReloadHistory()
+                }
+            } ?: run {
+                // User logged out - clear everything
+                currentUserId = null
+                clearHistory()
+            }
+        }
+    }
 
-    fun resetHistory() {
+    fun resetAndReloadHistory() {
+        // Clear existing listeners
+        pendingListener?.remove()
+        inProgressListener?.remove()
+
+        // Reset state
+        _uiState.value = UserHistoryUiState()
+
+        // Reload data for new user
+        loadPendingRequest()
+        loadInProgressRequest()
+        Log.d("HistoryVM", "Reloaded history for new user")
+    }
+
+    fun clearHistory() {
+        pendingListener?.remove()
+        inProgressListener?.remove()
         _uiState.value = UserHistoryUiState()
     }
 
-
     fun loadPendingRequest() {
-        val db = Firebase.firestore
-        val collectionRef = db.collection("requests")
+        currentUserId?.let { userId->
+            val db = Firebase.firestore
+            val collectionRef = db.collection("requests")
 
-        pendingListener?.remove()
+            pendingListener?.remove()
 
-        pendingListener = collectionRef
-            .whereEqualTo("pending", true)
-            .orderBy("createdTime",Query.Direction.DESCENDING)
-            .addSnapshotListener { querySnapshot, error ->
-                if (error != null) {
-                    Log.e("Firestore", "Listen failed.", error)
-                    return@addSnapshotListener
+            pendingListener = collectionRef
+                .whereEqualTo("userId",userId)
+                .whereEqualTo("pending", true)
+                .orderBy("createdTime",Query.Direction.DESCENDING)
+                .addSnapshotListener { querySnapshot, error ->
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error)
+                        return@addSnapshotListener
+                    }
+
+                    if (querySnapshot != null && !querySnapshot.isEmpty) {
+                        val pendingRequests = querySnapshot.toObjects(Request::class.java)
+                        updatePendingRequestList(pendingRequests)
+                    }
+                    else{
+
+                        updatePendingRequestList(emptyList<Request>().toMutableList())
+                    }
+
                 }
+        }
 
-                if (querySnapshot != null && !querySnapshot.isEmpty) {
-                    val pendingRequests = querySnapshot.toObjects(Request::class.java)
-                    updatePendingRequestList(pendingRequests)
-                }
-                else{
-
-                    updatePendingRequestList(emptyList<Request>().toMutableList())
-                }
-
-            }
 
     }
 

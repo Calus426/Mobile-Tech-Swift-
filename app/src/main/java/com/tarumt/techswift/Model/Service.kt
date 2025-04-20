@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.Model
+package com.tarumt.techswift.Model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
