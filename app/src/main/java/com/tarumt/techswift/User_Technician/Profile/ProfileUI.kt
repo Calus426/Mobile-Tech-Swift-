@@ -174,7 +174,8 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
 
                         DropdownSelection(
                             "Gender",
-                            onValueChange = { profileViewModel.genderUpdate(it) }
+                            onValueChange = { profileViewModel.genderUpdate(it) },
+
                         )
                         AddressTextField(
                             "Address",

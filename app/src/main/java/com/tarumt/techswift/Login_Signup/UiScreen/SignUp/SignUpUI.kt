@@ -5,6 +5,7 @@
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
+    import androidx.compose.foundation.layout.Row
     import androidx.compose.foundation.layout.Spacer
     import androidx.compose.foundation.layout.fillMaxHeight
     import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,7 @@
     import androidx.compose.material3.Card
     import androidx.compose.material3.CardDefaults
     import androidx.compose.material3.OutlinedTextField
+    import androidx.compose.material3.RadioButton
     import androidx.compose.material3.Text
     import androidx.compose.material3.TextButton
     import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@
     import androidx.compose.ui.platform.LocalContext
     import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.res.stringResource
+    import androidx.compose.ui.text.input.ImeAction
     import androidx.compose.ui.text.input.KeyboardType
     import androidx.compose.ui.text.input.PasswordVisualTransformation
     import androidx.compose.ui.text.input.VisualTransformation
@@ -59,7 +62,7 @@
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .fillMaxHeight(0.8f)
+                    .fillMaxHeight(0.9f)
                     .padding(1.dp),
                 shape = RoundedCornerShape(30.dp), // Rounded corners
                 elevation = CardDefaults.cardElevation(4.dp),
@@ -75,7 +78,7 @@
 
                     Text(
                         text = "Sign Up Page",
-                        fontSize = 32.sp
+                        fontSize = 22.sp
                     )
 
                     //Email Field
@@ -122,6 +125,31 @@
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    UserDetailsField(label = "Name", value =signUpViewModel.name, onValueChange = {signUpViewModel.nameUpdate(it)}, keyboardType = KeyboardType.Text)
+
+                    UserDetailsField(label = "Phone", value =signUpViewModel.phone, onValueChange = {signUpViewModel.phoneUpdate(it)},keyboardType = KeyboardType.Phone)
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        modifier = Modifier.fillMaxWidth()
+                    ){
+                        Row(verticalAlignment = Alignment.CenterVertically){
+                            RadioButton(
+                                selected = true,
+                                onClick = {}
+                            )
+                            Text("Male")
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically){
+                            RadioButton(
+                                selected = true,
+                                onClick = {}
+                            )
+                            Text("Female")
+                        }
+
+                    }
+
                     Button(
                         onClick = {authViewModel.signup(
                             signUpViewModel.email,
@@ -145,4 +173,27 @@
 
             }
         }
+    }
+
+    @Composable
+    private fun UserDetailsField(
+        label : String ,
+        value : String,
+        onValueChange : (String) -> Unit,
+        keyboardType: KeyboardType,
+        imeAction : ImeAction = ImeAction.Next
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = {
+                Text(label)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            )
+
+        )
+        Spacer(modifier = Modifier.height(8.dp))
     }

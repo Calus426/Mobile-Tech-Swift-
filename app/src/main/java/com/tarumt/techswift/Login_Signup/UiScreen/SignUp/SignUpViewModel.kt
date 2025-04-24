@@ -39,6 +39,10 @@ class SignUpViewModel : ViewModel() {
     var password by mutableStateOf("")
         private set
 
+    var profileAvatar by mutableStateOf("")
+        private set
+
+    //update var functions
     fun nameUpdate(it: String) {
         name = it
     }
@@ -78,6 +82,7 @@ class SignUpViewModel : ViewModel() {
         }
     }
 
+    //update uistate
     fun updateProfileDetails(context: Context) {
 
         //update the current profile value.
