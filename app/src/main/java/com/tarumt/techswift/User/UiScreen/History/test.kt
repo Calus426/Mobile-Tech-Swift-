@@ -1,6 +1,7 @@
 package com.tarumt.techswift.User.UiScreen.History
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.tarumt.techswift.R
 
 @Composable
-fun Try (){
+fun Try() {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -49,13 +50,6 @@ fun Try (){
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-//                Text(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    text =uiState.pendingList.toString() ,
-//                    textAlign = TextAlign.Center,
-//                    color = Color.Black
-//                )
-
                 PendingCard()
 
             }
@@ -65,7 +59,7 @@ fun Try (){
 
 @Composable
 fun PendingCard(
-    ){
+) {
 
 
     Card(
@@ -73,87 +67,66 @@ fun PendingCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(14.dp)
+            .padding(horizontal = 4.dp, vertical = 10.dp)
             .height(154.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        ) {
-//            AsyncImage(
-//                model = pending.pictureDescription,
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(200.dp)
-//                    .padding(8.dp)
-//            )
 
-            Card(
-                shape = RoundedCornerShape(30.dp),
-                modifier = Modifier
-                    .padding(top = 30.dp)
-                    .fillMaxHeight(0.7f)
-                    .fillMaxWidth(0.3f),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
 
-            ){
-                Image(
-                    painter = painterResource(id = R.drawable.airconditional),
-                    contentDescription = stringResource(id = R.string.air_conditional),
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+
+            ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp)
-
-                )
-            }
-
-            Row{
-                Column(
-                    modifier = Modifier
-                        .weight(0.7f)
-                        .padding(start = 5.dp)
+                        .fillMaxHeight(0.7f)
+                        .fillMaxWidth(0.3f),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Card(
+                        shape = RoundedCornerShape(30.dp),
+                        modifier = Modifier.fillMaxSize(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.electricity),
+                            contentDescription = "Electricity",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp)
+
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.padding(start = 15.dp, top = 6.dp)
+                ) {
+
                     Text(
-                        text = stringResource(id = R.string.air_conditional) +" Service",
+                        text =" Service",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            fontSize = 14.sp
+                            fontSize = 15.sp
                         ),
-                        maxLines = 2,
                         textAlign = TextAlign.Start
                     )
 
                 }
-
-                Column(
-                    modifier = Modifier
-                ) {
-                    Text(
-                        text = "RM100",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    )
-
-                }
             }
-
-
-
-
-
         }
-
     }
-
 }
 
 @Preview
 @Composable
-fun preview (){
+fun preview() {
     Try()
 }

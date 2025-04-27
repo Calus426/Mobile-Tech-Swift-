@@ -6,4 +6,5 @@ data class SignUpUIState (
     val currentProfile : User = User(),
     val addressSuggestion: List<String> = emptyList(),
     val fullAddress: String = "",
+    val textFieldError : List<Boolean> = List(5){false}
     )

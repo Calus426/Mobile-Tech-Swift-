@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,7 +29,6 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,11 +54,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Model.Service
+import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import com.tarumt.techswift.ui.theme.provider
-import okhttp3.internal.wait
 
 @Composable
 fun UserHistoryUI(
@@ -161,62 +158,71 @@ fun ServiceCard(
             .height(154.dp)
     ) {
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 7.dp, end = 2.dp)
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+
         ) {
-
-            Card(
-                shape = RoundedCornerShape(30.dp),
+            Row(
                 modifier = Modifier
-                    .padding(top = 30.dp)
-                    .fillMaxHeight(0.7f)
-                    .fillMaxWidth(0.3f),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-
+                    .fillMaxWidth()
+                    .padding(start = 7.dp, end = 2.dp),
             ) {
-                Image(
-                    painter = painterResource(service.image),
-                    contentDescription = stringResource(id = service.label),
+
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp)
+                        .fillMaxHeight(0.7f)
+                        .fillMaxWidth(0.3f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        shape = RoundedCornerShape(30.dp),
+                        modifier = Modifier.fillMaxSize(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
 
-                )
-            }
-
-            Column(
-                modifier = Modifier.padding(start = 15.dp, top = 6.dp)
-            ) {
-
-                Text(
-                    text = stringResource(id = service.label) + " Service",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 15.sp
-                    ),
-                    textAlign = TextAlign.Start
-                )
-
-
-                Text(
-                    text = "RM " + String.format("%.2f", request.offeredPrice ?: 0.00),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                )
-
-
-                if (request.pending == false) {
-                    viewModel.getTechnicianDetails(request.technicianId)
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.End
                     ) {
+                        Image(
+                            painter = painterResource(service.image),
+                            contentDescription = stringResource(id = service.label),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp)
+
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.padding(start = 15.dp, top = 6.dp)
+                ) {
+
+                    Text(
+                        text = stringResource(id = service.label) + " Service",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 15.sp
+                        ),
+                        textAlign = TextAlign.Start
+                    )
+
+
+                    Text(
+                        text = "RM " + String.format("%.2f", request.offeredPrice ?: 0.00),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    )
+
+
+                    if (request.pending == false) {
+                        viewModel.getTechnicianDetails(request.technicianId)
+
+
                         Text(
                             text = "Order accepted by Technician ${uiState.technicianName}",
                             color = Color(0xFFC6C6C6),
@@ -231,19 +237,19 @@ fun ServiceCard(
                             lineHeight = 12.sp
                         )
 
-                        Box(
-                            modifier = Modifier.padding(end = 8.dp,top = 2.dp)
-                        ){
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 8.dp, top = 15.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                                     .background(Color(0xFFD9D9D9)) // Green background
                                     .clickable {
-                                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                                            data = Uri.parse("tel:${uiState.technicianPhone}")
-                                        }
-                                        context.startActivity(intent)
+                                        PhoneCallIntent(uiState.technicianPhone, context)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -255,18 +261,27 @@ fun ServiceCard(
                                 )
                             }
                         }
-
                     }
+
+
                 }
-
             }
-
-
         }
 
 
     }
 
+}
+
+
+private fun PhoneCallIntent(
+    phoneNo: String,
+    context: Context
+) {
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = Uri.parse("tel:${phoneNo}")
+    }
+    context.startActivity(intent)
 }
 
 @Composable

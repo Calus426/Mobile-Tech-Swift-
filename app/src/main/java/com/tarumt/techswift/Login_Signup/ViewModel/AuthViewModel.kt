@@ -60,7 +60,7 @@ class AuthViewModel: ViewModel() {
 
     }
 
-    fun signup(email : String, password : String, currentUser : User, context : Context){
+    fun signup(email : String, password : String, currentUser : User, context : Context, onSuccess: () -> Unit = {}){
         _authState.value = AuthState.Loading
 
         if(email.isEmpty() || password.isEmpty()){
@@ -78,6 +78,7 @@ class AuthViewModel: ViewModel() {
                             .addOnSuccessListener { Toast.makeText(context, "User data saved!", Toast.LENGTH_SHORT).show() }
 
                         fetchUserRole()
+                        onSuccess()
                     }
                     else{
                         _authState.value =
@@ -99,7 +100,7 @@ class AuthViewModel: ViewModel() {
             .document(uid)
             .get()
             .addOnSuccessListener { document ->
-                val userRole = document.getString("role") ?: "user"
+                val userRole = document.getString("role") ?: "U"
                 _role.value = userRole
                 _authState.value = AuthState.Authenticated
             }

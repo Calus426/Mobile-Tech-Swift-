@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User_Technician.Profile
+package com.tarumt.techswift.Profile
 
 import com.tarumt.techswift.Model.User
 

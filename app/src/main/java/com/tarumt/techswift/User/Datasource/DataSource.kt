@@ -4,3 +4,8 @@ val genderList = listOf(
     "Male",
     "Female"
 )
+
+val roleList = listOf(
+    "User",
+    "Technician"
+)

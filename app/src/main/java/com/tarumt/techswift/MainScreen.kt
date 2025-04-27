@@ -1,5 +1,6 @@
 package com.tarumt.techswift
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,22 +57,23 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
-import com.tarumt.techswift.User_Technician.Profile.ProfileViewModel
+import com.tarumt.techswift.Model.NavItem
+import com.tarumt.techswift.Profile.ProfileViewModel
 import com.tarumt.techswift.ui.theme.BottomBar
 import com.tarumt.techswift.ui.theme.GreenBackground
 import com.tarumt.techswift.ui.theme.provider
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    authViewModel: AuthViewModel,
+    navController: NavHostController
+) {
     val authState = authViewModel.authState.observeAsState()
-
     val role = authViewModel.role.observeAsState()
-
-    val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentScreen = navBackStackEntry?.destination?.route?.let { route ->
@@ -187,6 +189,13 @@ fun MainScreen(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
                         .padding(innerPadding),
                     authViewModel = authViewModel
                 )
+            }
+        }
+    }
+    if (drawerState.isOpen) {
+        BackHandler {
+            scope.launch {
+                drawerState.close()
             }
         }
     }
@@ -332,19 +341,6 @@ fun DrawerContent(
         modifier = Modifier.padding(30.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.gem),
-//            contentDescription = "Profile Picture",
-//            contentScale = ContentScale.Crop, // crops to fit the circle properly
-//            modifier = Modifier
-//                .size(70.dp)
-//                .clip(CircleShape)
-//                .border(
-//                    width = 3.dp,
-//                    color = Color.White,
-//                    shape = CircleShape
-//                )
-//        )
         AsyncImage(
             model = profileAvatar, // Directly pass Firebase Storage reference
             contentDescription = "Profile Picture",

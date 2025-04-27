@@ -1,6 +1,4 @@
-package com.tarumt.techswift
-
-import androidx.compose.ui.graphics.vector.ImageVector
+package com.tarumt.techswift.Model
 
 data class NavItem(
     val label : String,

@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User_Technician.Profile
+package com.tarumt.techswift.Profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -74,12 +75,13 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     var isLoading by remember { mutableStateOf(true) }
 
 
-
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(uiState.value.oriProfile.profileAvatar)
             .crossfade(true)
-            .build()
+            .build(),
+        placeholder = painterResource(R.drawable.default_avatar2),
+        error = painterResource(R.drawable.default_avatar2)
     )
 
 
@@ -94,6 +96,7 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
    LaunchedEffect(painter.state){
        when(painter.state){
            is AsyncImagePainter.State.Success -> isLoading = false
+           is AsyncImagePainter.State.Error -> isLoading = false
            else -> Unit
        }
    }
@@ -110,7 +113,7 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            if (!isLoading) {
+            if (!isLoading || uiState.value.oriProfile.profileAvatar.isEmpty()) {
                 Box {
                     Box(
                         modifier = Modifier
@@ -175,8 +178,10 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                         DropdownSelection(
                             "Gender",
                             onValueChange = { profileViewModel.genderUpdate(it) },
+                            gender = profileViewModel.gender
 
                         )
+
                         AddressTextField(
                             "Address",
                             profileViewModel.address,
@@ -188,7 +193,6 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                             uiState.value.addressSuggestion,
                             onDropdownClick = {
                                 profileViewModel.updateFullAdress(it)
-
                                 profileViewModel.loadAndFillAddress(
                                     address = it,
                                     context = context
@@ -327,7 +331,6 @@ fun AddressTextField(
                     onValueChange(it)
                     expanded = true
                 },
-//            placeholder = { Text(placeholder,fontSize = 13.sp) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFe0d4d4),
                     unfocusedContainerColor = Color(0xFFe0d4d4)
@@ -402,7 +405,6 @@ fun AddressTextField(
                     readOnly = true
                 )
             }
-            // Spacer(modifier = Modifier.fillMaxWidth(0.1f))
 
             Column(
                 Modifier
@@ -448,9 +450,9 @@ fun AddressTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSelection(fieldName: String, onValueChange: (String) -> Unit) {
+fun DropdownSelection(fieldName: String, onValueChange: (String) -> Unit,gender:String="") {
 
-    var selectedText by remember { mutableStateOf(genderList[0]) }
+    var selectedText by remember { mutableStateOf(genderList.find { it == gender } ?: genderList.first())  }
     var isExpanded by remember { mutableStateOf(false) }
 
     Column(

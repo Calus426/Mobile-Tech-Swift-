@@ -10,5 +10,5 @@ data class User(
     val state: String = "",
     val fullAddress: String = "",
     val profileAvatar : String = "",
-    val role : String = ""
+    val role : String = "U"
 )
