@@ -38,16 +38,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 
 @Composable
 fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
 
     val uiState by viewModel.uiState.collectAsState()
+
 
 
 
@@ -105,7 +108,7 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
                                 task = task,
                                 isInProgress = selectedTab == "inProgress",
                                 onDoneClick = {
-                                    viewModel.markTaskAsFinished(task.id)
+                                    viewModel.markTaskAsFinished("R"+task.id)
                                 }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
@@ -119,10 +122,11 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
 
 @Composable
 fun HistoryServiceCard(
-    task: HistoryTaskUi,
+    task: Request,
     isInProgress: Boolean = false,
     onDoneClick: (() -> Unit)? = null
 ) {
+    val serviceList = ServiceDataSource().loadServices()
     Card(
         shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
@@ -156,26 +160,26 @@ fun HistoryServiceCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = task.serviceName,
+                        text = stringResource(serviceList[task.serviceId].label),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             fontSize = 16.sp
                         )
                     )
-                    Text(
-                        text = "Technician: ${task.technicianName}",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color.LightGray,
-                            fontSize = 12.sp
-                        )
-                    )
+//                    Text(
+//                        text = "Technician: ${task.technicianName}",
+//                        style = MaterialTheme.typography.bodySmall.copy(
+//                            color = Color.LightGray,
+//                            fontSize = 12.sp
+//                        )
+//                    )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = task.price,
+                    text = task.offeredPrice.toString(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
