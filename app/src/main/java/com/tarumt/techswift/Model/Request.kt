@@ -9,9 +9,8 @@ data class Request(
     val pictureDescription : String = "",
     val userId : String? = "",
     val pending : Boolean = true,
-    val done : Boolean = false,
     val createdTime : Timestamp? = null,
     val offeredPrice : Double? = 0.00,
     val technicianId : String = "",
-    val status : String="",
+    val status : String = "pending"  //pending,inProgress,finished
 )

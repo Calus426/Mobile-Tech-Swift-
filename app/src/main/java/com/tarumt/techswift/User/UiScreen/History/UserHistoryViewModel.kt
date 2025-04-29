@@ -103,7 +103,7 @@ class UserHistoryViewModel : ViewModel() {
             inProgressListener = collectionRef
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("pending", false)
-                .whereEqualTo("done", false)  // Added this condition
+                .whereEqualTo("status", "inProgress")
                 .orderBy("createdTime", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, error ->
                     if (error != null) {

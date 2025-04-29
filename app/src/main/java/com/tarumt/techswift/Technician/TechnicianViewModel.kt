@@ -37,7 +37,6 @@ class TechnicianViewModel : ViewModel() {
                         pictureDescription = doc.getString("pictureDescription") ?: "",
                         userId = doc.getString("userId") ?: "",
                         pending = doc.getBoolean("pending") ?: true,
-                        done = doc.getBoolean("done") ?: false,
                         technicianId = doc.getString("technicianId") ?: "",
                         createdTime =doc.getTimestamp("createdTime") ?:null,
                         offeredPrice = doc.getDouble("offeredPrice")
