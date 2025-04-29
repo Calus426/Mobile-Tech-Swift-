@@ -2,6 +2,7 @@ package com.tarumt.techswift.Technician.TechnicianHistory
 
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Technician.TechnicianUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,16 +22,24 @@ class TechnicianHistoryViewModel : ViewModel() {
             .whereEqualTo("pending", false) // Only accepted tasks
             .get()
             .addOnSuccessListener { result ->
-                val inProgress = mutableListOf<HistoryTaskUi>()
-                val finished = mutableListOf<HistoryTaskUi>()
+                val inProgress = mutableListOf<Request>()
+                val finished = mutableListOf<Request>()
 
                 result.forEach { doc ->
-                    val task = doc.toObject(HistoryTask::class.java)
-                    val uiTask = HistoryTaskUi(
-                        id = doc.id,
-                        serviceName = task.serviceName,
-                        price = task.price,
-                        technicianName = task.technicianName
+                    val task = doc.toObject(Request::class.java)
+                    val uiTask =
+                        Request(
+
+                        id = doc.getLong("id")?.toInt() ?: 0,
+                        serviceId = doc.getLong("serviceId")?.toInt() ?: 0,
+                        textDescription = doc.getString("textDescription") ?: "",
+                        pictureDescription = doc.getString("pictureDescription") ?: "",
+                        userId = doc.getString("userId") ?: "",
+                        pending = doc.getBoolean("pending") ?: true,
+                        technicianId = doc.getString("technicianId") ?: "",
+                        createdTime =doc.getTimestamp("createdTime") ?:null,
+                        offeredPrice = doc.getDouble("offeredPrice")
+
                     )
                     if (task.status == "inProgress") {
                         inProgress.add(uiTask)
@@ -53,7 +62,7 @@ class TechnicianHistoryViewModel : ViewModel() {
             }
     }
     fun markTaskAsFinished(taskId: String) {
-        db.collection("Technician")
+        db.collection("requests")
             .document(taskId)
             .update("status", "finished")
             .addOnSuccessListener {

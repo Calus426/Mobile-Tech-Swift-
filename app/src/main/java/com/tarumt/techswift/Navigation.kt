@@ -118,7 +118,6 @@ fun Navigate(
         }
 
         composable(route = Navigation.TechnicianHome.name) {
-
            TechnicianHomeUI()
         }
 
