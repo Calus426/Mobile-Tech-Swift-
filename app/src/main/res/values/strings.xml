@@ -15,4 +15,5 @@
     <string name="login">Login</string>
     <string name="signup">SignUp</string>
     <string name="technician_home">TechnicianHome\n</string>
+    <string name="technician_history">TechnicianHistory</string>
 </resources>

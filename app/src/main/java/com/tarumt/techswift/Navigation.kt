@@ -15,14 +15,16 @@ import androidx.navigation.compose.composable
 import com.tarumt.techswift.Login_Signup.UiScreen.FlipCard
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthState
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
+import com.tarumt.techswift.Profile.ProfileUI
+import com.tarumt.techswift.Profile.ProfileViewModel
+import com.tarumt.techswift.Technician.TechnicianHistory.TechnicianHistoryUi
+import com.tarumt.techswift.Technician.TechnicianHomeUI
 import com.tarumt.techswift.User.UiScreen.History.UserHistoryUI
 import com.tarumt.techswift.User.UiScreen.History.UserHistoryViewModel
 import com.tarumt.techswift.User.UiScreen.Home.UserHomeUI
-import com.tarumt.techswift.Profile.ProfileUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
-import com.tarumt.techswift.Profile.ProfileViewModel
-import com.tarumt.techswift.Technician.TechnicianHomeUI
+
 
 
 enum class Navigation(@StringRes val title: Int, val canNavigate: Boolean) {
@@ -32,6 +34,7 @@ enum class Navigation(@StringRes val title: Int, val canNavigate: Boolean) {
     Profile(title = R.string.profile, canNavigate = true),
     Login(title = R.string.login, canNavigate = false),
     TechnicianHome(title = R.string.technician_home, canNavigate = false),
+    TechnicianHistory(title = R.string.technician_history, canNavigate = false),
 
 }
 
@@ -120,6 +123,11 @@ fun Navigate(
         composable(route = Navigation.TechnicianHome.name) {
            TechnicianHomeUI()
         }
+
+        composable(route = Navigation.TechnicianHistory.name) {
+            TechnicianHistoryUi()
+        }
+
 
         composable(route = Navigation.ServiceDetails.name) {
             ServiceDetailsUI(

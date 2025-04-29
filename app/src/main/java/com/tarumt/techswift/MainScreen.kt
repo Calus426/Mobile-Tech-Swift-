@@ -92,7 +92,7 @@ fun MainScreen(
             stringResource(R.string.history),
             R.drawable.orderselected,
             R.drawable.ordernonselected,
-            Navigation.UserHistory.name
+            if(role.value=="U") Navigation.UserHistory.name else Navigation.TechnicianHistory.name
         )
     )
 

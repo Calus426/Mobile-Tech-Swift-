@@ -45,7 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 
 @Composable
-fun HistoryScreen(viewModel: TechnicianHistoryViewModel = viewModel()) {
+fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
 
     val uiState by viewModel.uiState.collectAsState()
 
