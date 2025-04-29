@@ -12,5 +12,6 @@ data class Request(
     val done : Boolean = false,
     val createdTime : Timestamp? = null,
     val offeredPrice : Double? = 0.00,
-    val technicianId : String = ""
+    val technicianId : String = "",
+    val status : String="",
 )
