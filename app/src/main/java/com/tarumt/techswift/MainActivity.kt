@@ -37,10 +37,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
                 TechSwiftTheme {
+                    val windowInfo = rememberWindowInfo()
                     if (navViewModel.navController == null) {
                         navViewModel.navController = rememberNavController()
                     }
-                    MainScreen(authViewModel=authViewModel, navController =  navViewModel.navController!!)
+                    MainScreen(authViewModel=authViewModel, navController =  navViewModel.navController!!,windowInfo = windowInfo)
             }
 
         }

@@ -70,7 +70,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    windowInfo: WindowInfo
 ) {
     val authState = authViewModel.authState.observeAsState()
     val role = authViewModel.role.observeAsState()
@@ -140,43 +141,79 @@ fun MainScreen(
                     }
                 }
             ) {
-                Scaffold(
-                    containerColor = GreenBackground,
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        BottomNavigationBar(
-                            navItemList,
-                            selectedButton,
-                            currentRoute,
-                            navController
-                        )
-                    },
-                    topBar = {
-                        TopBarApp(
-                            currentScreen = currentScreen,
-                            navigateUp = { navController.navigateUp() },
-                            onOpenDrawer = {
-                                scope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
+                if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact){
+                    Scaffold(
+                        containerColor = GreenBackground,
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            BottomNavigationBar(
+                                navItemList,
+                                selectedButton,
+                                currentRoute,
+                                navController
+                            )
+                        },
+                        topBar = {
+                            TopBarApp(
+                                currentScreen = currentScreen,
+                                navigateUp = { navController.navigateUp() },
+                                onOpenDrawer = {
+                                    scope.launch {
+                                        drawerState.apply {
+                                            if (isClosed) open() else close()
+                                        }
                                     }
                                 }
-                            }
 
+                            )
+                        }
+
+                    ) { innerPadding ->
+                        Navigate(
+                            navController = navController,
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .zIndex(1f),
+                            authViewModel = authViewModel,
+                            profileViewModel = profileViewModel,
+                            windowInfo = windowInfo
                         )
+
                     }
-
-                ) { innerPadding ->
-                    Navigate(
-                        navController = navController,
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .zIndex(1f),
-                        authViewModel = authViewModel,
-                        profileViewModel = profileViewModel
-                    )
-
                 }
+                else{
+                    Scaffold(
+                        containerColor = GreenBackground,
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            TopBarApp(
+                                currentScreen = currentScreen,
+                                navigateUp = { navController.navigateUp() },
+                                onOpenDrawer = {
+                                    scope.launch {
+                                        drawerState.apply {
+                                            if (isClosed) open() else close()
+                                        }
+                                    }
+                                }
+
+                            )
+                        }
+
+                    ) { innerPadding ->
+                        Navigate(
+                            navController = navController,
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .zIndex(1f),
+                            authViewModel = authViewModel,
+                            profileViewModel = profileViewModel,
+                            windowInfo = windowInfo
+                        )
+
+                    }
+                }
+
             }
         } else {
             Scaffold(
@@ -187,7 +224,8 @@ fun MainScreen(
                     navController = navController,
                     modifier = Modifier
                         .padding(innerPadding),
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    windowInfo = windowInfo
                 )
             }
         }

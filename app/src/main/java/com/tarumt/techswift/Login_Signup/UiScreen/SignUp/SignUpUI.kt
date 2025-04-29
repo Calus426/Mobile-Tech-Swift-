@@ -330,14 +330,16 @@ fun SignUpUI(
 
 
         // Prevent scrolling and interactions
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    // This will block all user interactions while processing
-                    detectTapGestures { }
-                }
-        )
+        if(showProcessingDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        // This will block all user interactions while processing
+                        detectTapGestures { }
+                    }
+            )
+        }
 
     }
 }

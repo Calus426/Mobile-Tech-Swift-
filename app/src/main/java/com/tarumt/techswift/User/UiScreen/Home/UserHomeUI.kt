@@ -35,14 +35,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.tarumt.techswift.R
 import com.tarumt.techswift.Model.Service
+import com.tarumt.techswift.WindowInfo
 
 @Composable
 fun UserHomeUI(
-    homeViewModel : UserHomeViewModel = viewModel(),
-    onServiceClick : (Service) -> Unit
+    homeViewModel: UserHomeViewModel = viewModel(),
+    onServiceClick: (Service) -> Unit,
+    windowInfo: WindowInfo
 ) {
 
 
+    val gridcells : Int
+    if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact){
+        gridcells = 2
+    }
+    else{
+        gridcells = 3
+    }
     val homeUiState by homeViewModel.uiState.collectAsState()
     Box(
         Modifier
@@ -79,7 +88,7 @@ fun UserHomeUI(
 
             //Service List
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // 2 columns grid
+                    columns = GridCells.Fixed(gridcells), // 2 columns grid
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -127,12 +136,6 @@ fun ServiceItem(service : Service, modifier: Modifier = Modifier,
 
 
 
-@Preview
-@Composable
-fun HomePreview(){
-    val navController  = rememberNavController()
-    UserHomeUI {  }
-}
 
 
 

@@ -42,7 +42,8 @@ fun Navigate(
     serviceViewModel: ServiceDetailsViewModel = viewModel(),
     userHistoryViewModel: UserHistoryViewModel = viewModel(),
     authViewModel: AuthViewModel,
-    profileViewModel: ProfileViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel(),
+    windowInfo: WindowInfo
 
 ) {
     val hasNavigated = rememberSaveable { mutableStateOf(false) }
@@ -111,7 +112,8 @@ fun Navigate(
                     serviceViewModel.resetServiceDetails()
                     serviceViewModel.updateServiceId(it)
                     navController.navigate(Navigation.ServiceDetails.name)
-                }
+                },
+                windowInfo = windowInfo
             )
         }
 
