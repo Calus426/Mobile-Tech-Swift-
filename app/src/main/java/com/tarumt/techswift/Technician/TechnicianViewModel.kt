@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Model.User
@@ -57,11 +58,13 @@ class TechnicianViewModel : ViewModel() {
     }
 
     fun acceptTask(task: Request, context: Context) {
+        val auth=FirebaseAuth.getInstance()
         db.collection("requests").document("R"+task.id.toString())
             .update(
                 mapOf(
                     "pending" to false,
-                    "status" to "inProgress"
+                    "status" to "inProgress",
+                    "technicianId" to auth.currentUser?.uid
                 )
             )
             .addOnSuccessListener {
