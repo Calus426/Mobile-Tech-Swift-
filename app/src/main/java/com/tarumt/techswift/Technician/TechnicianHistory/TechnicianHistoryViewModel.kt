@@ -39,7 +39,7 @@ class TechnicianHistoryViewModel : ViewModel() {
                         technicianId = doc.getString("technicianId") ?: "",
                         createdTime =doc.getTimestamp("createdTime") ?:null,
                         offeredPrice = doc.getDouble("offeredPrice"),
-                        acceptedTime = doc.getTimestamp("accpetedTime"),
+                        acceptedTime = doc.getTimestamp("acceptedTime"),
                         finishedTime = doc.getTimestamp("finishedTime")
 
 
@@ -65,30 +65,17 @@ class TechnicianHistoryViewModel : ViewModel() {
             }
     }
     fun markTaskAsFinished(taskId: String) {
-        db.collection("requests")
-            .document(taskId)
-            .update("status", "finished")
-            .addOnSuccessListener {
-                fetchHistory() // Refresh the list after marking done
-            }
-            .addOnFailureListener { e ->
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = e.message ?: "Error updating task"
-                )
-            }
-    }
-    fun markTaskAsAccepted(taskId: String) {
-        val acceptedTimestamp = com.google.firebase.Timestamp.now()
+        val finishedTimestamp = com.google.firebase.Timestamp.now()
         db.collection("requests")
             .document(taskId)
             .update(
                 mapOf(
-                    "status" to "inProgress",
-                    "acceptedTime" to acceptedTimestamp
+                    "status" to "finished",
+                    "finishedTime" to finishedTimestamp
                 )
             )
             .addOnSuccessListener {
-                fetchHistory()
+                fetchHistory() // Refresh to get updated time
             }
             .addOnFailureListener { e ->
                 _uiState.value = _uiState.value.copy(
@@ -96,4 +83,5 @@ class TechnicianHistoryViewModel : ViewModel() {
                 )
             }
     }
+
 }

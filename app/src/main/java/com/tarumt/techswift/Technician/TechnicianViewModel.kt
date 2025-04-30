@@ -42,8 +42,8 @@ class TechnicianViewModel : ViewModel() {
                         technicianId = doc.getString("technicianId") ?: "",
                         createdTime =doc.getTimestamp("createdTime") ?:null,
                         offeredPrice = doc.getDouble("offeredPrice"),
-                        acceptedTime = null,
-                        finishedTime = null
+                        acceptedTime = doc.getTimestamp("acceptedTime"),
+                        finishedTime = doc.getTimestamp("finishedTime")
 
                     )
                 }
