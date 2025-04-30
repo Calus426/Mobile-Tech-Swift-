@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -86,13 +90,13 @@ fun MainScreen(
             stringResource(R.string.home),
             R.drawable.homeselected,
             R.drawable.homenonselected,
-            if(role.value=="U") Navigation.UserHome.name else Navigation.TechnicianHome.name
+            if (role.value == "U") Navigation.UserHome.name else Navigation.TechnicianHome.name
         ),
         NavItem(
             stringResource(R.string.history),
             R.drawable.orderselected,
             R.drawable.ordernonselected,
-            if(role.value=="U") Navigation.UserHistory.name else Navigation.TechnicianHistory.name
+            if (role.value == "U") Navigation.UserHistory.name else Navigation.TechnicianHistory.name
         )
     )
 
@@ -111,9 +115,9 @@ fun MainScreen(
 
 
 
-    if(authState.value == null || role.value == null){
+    if (authState.value == null || role.value == null) {
         return
-    }else{
+    } else {
         if (showElement) {
             val profileViewModel: ProfileViewModel = viewModel()
             val uiState = profileViewModel.uiState.collectAsState()
@@ -123,6 +127,7 @@ fun MainScreen(
                     ModalDrawerSheet(
                         drawerContainerColor = GreenBackground
                     ) {
+
                         DrawerContent(
                             navController,
                             closeDrawer = {
@@ -134,14 +139,15 @@ fun MainScreen(
                             onLogoutClick = {
                                 authViewModel.signout()
 
-                                            },
+                            },
                             uiState.value.oriProfile.profileAvatar,
                             uiState.value.oriProfile.name
                         )
+
                     }
                 }
             ) {
-                if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact){
+                if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact) {
                     Scaffold(
                         containerColor = GreenBackground,
                         modifier = Modifier.fillMaxSize(),
@@ -163,7 +169,8 @@ fun MainScreen(
                                             if (isClosed) open() else close()
                                         }
                                     }
-                                }
+                                },
+                                height = 95.dp
 
                             )
                         }
@@ -180,8 +187,7 @@ fun MainScreen(
                         )
 
                     }
-                }
-                else{
+                } else {
                     Scaffold(
                         containerColor = GreenBackground,
                         modifier = Modifier.fillMaxSize(),
@@ -195,8 +201,8 @@ fun MainScreen(
                                             if (isClosed) open() else close()
                                         }
                                     }
-                                }
-
+                                },
+                                height = 65.dp
                             )
                         }
 
@@ -239,7 +245,6 @@ fun MainScreen(
     }
 
 
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,7 +252,8 @@ fun MainScreen(
 fun TopBarApp(
     currentScreen: Navigation?,
     navigateUp: () -> Unit,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    height: Dp
 ) {
 
     if (currentScreen != null && currentScreen != Navigation.Login) {
@@ -255,7 +261,7 @@ fun TopBarApp(
 
         CenterAlignedTopAppBar(
             modifier = Modifier
-                .height(95.dp),
+                .height(height),
             title = {
                 Box(
                     modifier = Modifier.fillMaxHeight(), // Takes full height of AppBar
@@ -293,12 +299,18 @@ fun TopBarApp(
                 } else {
                     IconButton(
                         onClick = onOpenDrawer,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(45.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "Menu",
                             tint = Color.White,
-                            modifier = Modifier.padding(10.dp)
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxHeight()
+                                .size(35.dp)
                         )
                     }
                 }
@@ -372,7 +384,7 @@ fun DrawerContent(
     closeDrawer: () -> Unit,
     onLogoutClick: () -> Unit,
     profileAvatar: String,
-    name : String
+    name: String
 ) {
 
     Row(
@@ -397,6 +409,7 @@ fun DrawerContent(
 
         Column(
             modifier = Modifier.padding(13.dp)
+
         ) {
             Text(
                 text = "Hello!",
@@ -416,12 +429,15 @@ fun DrawerContent(
         modifier = Modifier
             .fillMaxWidth(0.6f)  // Drawer takes full width
             .padding(start = 16.dp)
+            .verticalScroll(rememberScrollState()) // Enable vertical scrolling
     ) {
+
         Text(
             text = "MAIN",
             fontSize = 10.sp,
             color = Color.White
         )
+
         Spacer(modifier = Modifier.height(10.dp))
 
         NavigationDrawerItem(
