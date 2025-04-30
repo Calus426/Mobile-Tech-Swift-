@@ -165,18 +165,25 @@ fun ServiceCard(
     uiState: UserHistoryUiState,
     context: Context
 ) {
-    val (date, time) = if (request.createdTime != null) {
-        parseTimestamp(request.createdTime)
-    } else {
-        "N/A" to "N/A"
+    val orderEvents: MutableList<OrderEvent> = mutableListOf()
+
+    if (request.createdTime != null) {
+        val (date, time) = parseTimestamp(request.createdTime)
+        orderEvents.add(OrderEvent("Request Posted",date,time))
+    }
+    if (request.acceptedTime != null) {
+        val (date, time) = parseTimestamp(request.acceptedTime)
+        orderEvents.add(OrderEvent("Request Accepted",date,time))
+    }
+    if (request.finishedTime != null) {
+        val (date, time) = parseTimestamp(request.finishedTime)
+        orderEvents.add(OrderEvent("Request Finished",date,time))
     }
 
-    val orderEvents: List<OrderEvent> = listOf(
-        OrderEvent(title = "Request Posted", date = date, time = time),
-        OrderEvent(title = "Request Aceepted", date = date, time = time),
-        OrderEvent(title = "Request Finished", date = date, time = time),
 
-    )
+
+
+
     var showInfoBox by remember { mutableStateOf(false) }
     if (showInfoBox) {
         Dialog(onDismissRequest = { showInfoBox = false }) {
