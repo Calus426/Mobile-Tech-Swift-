@@ -211,18 +211,6 @@ fun ServiceCard(
 
                     Spacer(modifier = Modifier.height(10.dp))  // Adds space at the bottom
 
-                    request.pictureDescription?.let { imageUrl ->
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(150.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
                     Text(
                         text = "Price: RM ${
                             String.format(
@@ -234,6 +222,19 @@ fun ServiceCard(
                         color = Color.Black,
                         fontSize = 16.sp
                     )
+                    Spacer(modifier = Modifier.height(10.dp))  // Adds space at the bottom
+
+                    request.pictureDescription?.let { imageUrl ->
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }

@@ -116,7 +116,6 @@ class ServiceDetailsViewModel : ViewModel() {
             createdTime = Timestamp.now(),
             offeredPrice = _uiState.value.offeredPrice.toDoubleOrNull(),
             userId = userId
-
         )
         val dbRef = Firebase.firestore
             .collection("requests")

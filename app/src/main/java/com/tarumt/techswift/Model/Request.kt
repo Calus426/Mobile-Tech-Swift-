@@ -12,5 +12,7 @@ data class Request(
     val createdTime : Timestamp? = null,
     val offeredPrice : Double? = 0.00,
     val technicianId : String = "",
-    val status : String = "pending"  //pending,inProgress,finished
+    val status : String = "pending" , //pending,inProgress,finished
+    val acceptedTime : Timestamp? = null,
+    val finishedTime : Timestamp? = null
 )
