@@ -38,7 +38,10 @@ class TechnicianHistoryViewModel : ViewModel() {
                         pending = doc.getBoolean("pending") ?: true,
                         technicianId = doc.getString("technicianId") ?: "",
                         createdTime =doc.getTimestamp("createdTime") ?:null,
-                        offeredPrice = doc.getDouble("offeredPrice")
+                        offeredPrice = doc.getDouble("offeredPrice"),
+                        acceptedTime = doc.getTimestamp("accpetedTime"),
+                        finishedTime = doc.getTimestamp("finishedTime")
+
 
                     )
                     if (task.status == "inProgress") {
