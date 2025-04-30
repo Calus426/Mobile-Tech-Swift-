@@ -37,6 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun TechnicianHomeUI(
@@ -110,7 +119,7 @@ fun TechnicianHomeUI(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.85f)
-                        .fillMaxHeight(0.45f)
+                        .fillMaxHeight(0.6f)
                         .background(Color.White, shape = RoundedCornerShape(16.dp))
                         .padding(20.dp)
                 ) {
@@ -118,34 +127,67 @@ fun TechnicianHomeUI(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxSize()
                     ) {
+                        val task = uiState.selectedTask!!
+                        val painter = rememberAsyncImagePainter(model = task.pictureDescription)
+
+
+
                         Text(
-                            text = "Task: R${uiState.selectedTask!!.id}",
+                            text = "Task: R${task.id}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
                         Spacer(modifier = Modifier.height(10.dp))
 
+                        fun format(ts: Timestamp?): String {
+                            return ts?.toDate()?.let {
+                                val df = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                                val tf = SimpleDateFormat("HH:mm", Locale.getDefault())
+                                "Date: ${df.format(it)}\nTime: ${tf.format(it)}"
+                            } ?: "N/A"
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(20.dp))
+                                .padding(16.dp)
+                        ) {
+                            Column {
+                                TimelineStep("Request Posted", format(task.createdTime),isLast = true)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         Text(
-                            text = "Service: ${
-                                stringResource(serviceList[uiState.selectedTask!!.serviceId].label)
-                            }",
+                            text = "Service: ${stringResource(serviceList[task.serviceId].label)}",
                             fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(5.dp))
 
                         Text(
-                            text = "Description: ${uiState.selectedTask!!.textDescription}",
+                            text = "Description: ${task.textDescription}",
                             fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(5.dp))
 
                         Text(
-                            text = "Price: RM ${
-                                String.format("%.2f", uiState.selectedTask!!.offeredPrice ?: 0.00)
-                            }",
+                            text = "Price: RM ${String.format("%.2f", task.offeredPrice ?: 0.00)}",
                             fontSize = 16.sp
                         )
 
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Image Preview
+                        Image(
+                            painter = painter,
+                            contentDescription = "Task Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                                .padding(bottom = 12.dp),
+                            contentScale = ContentScale.Crop
+                        )
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
@@ -215,6 +257,45 @@ fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: 
                     )
                 }
             }
+        }
+    }
+}
+@Composable
+fun TimelineStep(title: String, timeInfo: String, isLast: Boolean = false) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        // Dot and line column
+        Column(
+            modifier = Modifier
+                .padding(end = 12.dp)
+                .width(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Vertical line (drawn first, behind the dot)
+            if (!isLast) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(40.dp)
+                        .background(Color.Black)
+                )
+            } else {
+                // Add empty space for last item to maintain alignment
+                Spacer(modifier = Modifier.height(40.dp))
+            }
+
+            // Dot (drawn on top of the line)
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .background(Color.Black, shape = CircleShape)
+                    .offset(y = (-20).dp) // This moves the dot up to center on the line
+            )
+        }
+
+        // Event text
+        Column(modifier = Modifier.padding(bottom = 12.dp)) {
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(timeInfo, fontSize = 13.sp, color = Color.DarkGray)
         }
     }
 }

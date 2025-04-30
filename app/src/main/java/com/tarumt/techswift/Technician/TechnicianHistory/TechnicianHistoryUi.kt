@@ -50,6 +50,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.Timestamp
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
@@ -213,12 +217,17 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth(0.9f).padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(16.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+
+
                 Text("Order: R${task.id}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -228,30 +237,89 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit) {
                     "Date: ${df.format(it)}\nTime: ${tf.format(it)}"
                 } ?: "N/A"
 
-                TimelineStep("Request Posted", format(task.createdTime))
-                TimelineStep("Request Accepted", format(task.acceptedTime))
-                TimelineStep("Request Finished", format(task.finishedTime))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(20.dp))
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        TimelineStep("Request Posted", format(task.createdTime))
+                        TimelineStep("Request Accepted", format(task.acceptedTime))
+                        TimelineStep("Request Finished", format(task.finishedTime), isLast = true)
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Price: RM ${task.offeredPrice}")
                 Text("Text Description: ${task.textDescription}")
+
+                //  Image Preview
+                val painter = rememberAsyncImagePainter(task.pictureDescription)
+                Image(
+                    painter = painter,
+                    contentDescription = "Task Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .padding(bottom = 12.dp),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Button(
+                    onClick = { onDismiss() },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF7B61FF),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Close")
+                }
+
             }
         }
     }
 }
 
+
 @Composable
-fun TimelineStep(title: String, timeInfo: String) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+fun TimelineStep(title: String, timeInfo: String, isLast: Boolean = false) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        // Dot and line column
+        Column(
+            modifier = Modifier
+                .padding(end = 12.dp)
+                .width(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Vertical line (drawn first, behind the dot)
+            if (!isLast) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(40.dp)
+                        .background(Color.Black)
+                )
+            } else {
+                // Add empty space for last item to maintain alignment
+                Spacer(modifier = Modifier.height(40.dp))
+            }
+
+            // Dot (drawn on top of the line)
             Box(
-                Modifier.size(10.dp).background(Color.Black, CircleShape)
+                modifier = Modifier
+                    .size(10.dp)
+                    .background(Color.Black, shape = CircleShape)
+                    .offset(y = (-20).dp) // This moves the dot up to center on the line
             )
-            Spacer(Modifier.width(8.dp))
-            Text(title, fontWeight = FontWeight.SemiBold)
         }
-        Spacer(Modifier.height(4.dp))
-        Text(timeInfo, fontSize = 12.sp, color = Color.DarkGray)
-        Spacer(Modifier.height(12.dp))
+
+        // Event text
+        Column(modifier = Modifier.padding(bottom = 12.dp)) {
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(timeInfo, fontSize = 13.sp, color = Color.DarkGray)
+        }
     }
 }
