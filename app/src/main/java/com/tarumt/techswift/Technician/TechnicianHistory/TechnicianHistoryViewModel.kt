@@ -74,4 +74,23 @@ class TechnicianHistoryViewModel : ViewModel() {
                 )
             }
     }
+    fun markTaskAsAccepted(taskId: String) {
+        val acceptedTimestamp = com.google.firebase.Timestamp.now()
+        db.collection("requests")
+            .document(taskId)
+            .update(
+                mapOf(
+                    "status" to "inProgress",
+                    "acceptedTime" to acceptedTimestamp
+                )
+            )
+            .addOnSuccessListener {
+                fetchHistory()
+            }
+            .addOnFailureListener { e ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = e.message ?: "Error updating task"
+                )
+            }
+    }
 }

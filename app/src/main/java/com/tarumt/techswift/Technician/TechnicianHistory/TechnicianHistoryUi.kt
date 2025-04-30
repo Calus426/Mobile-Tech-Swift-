@@ -1,6 +1,8 @@
 package com.tarumt.techswift.Technician.TechnicianHistory
 
+import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,9 +42,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import java.util.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.Timestamp
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 
@@ -50,11 +55,9 @@ import com.tarumt.techswift.User.Datasource.ServiceDataSource
 fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
 
     val uiState by viewModel.uiState.collectAsState()
-
-
-
-
     var selectedTab by remember { mutableStateOf("inProgress") }
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedTask by remember { mutableStateOf<Request?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchHistory()
@@ -64,18 +67,12 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.85f)
-                .padding(1.dp),
+                .fillMaxHeight(0.85f),
             shape = RoundedCornerShape(30.dp),
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                // Tabs
+            Column(Modifier.fillMaxSize().padding(16.dp)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -108,7 +105,11 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
                                 task = task,
                                 isInProgress = selectedTab == "inProgress",
                                 onDoneClick = {
-                                    viewModel.markTaskAsFinished("R"+task.id)
+                                    viewModel.markTaskAsFinished("R${task.id}")
+                                },
+                                onClick = {
+                                    selectedTask = task
+                                    showDialog = true
                                 }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
@@ -118,13 +119,18 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
             }
         }
     }
+
+    if (showDialog && selectedTask != null) {
+        TaskTimelineDialog(task = selectedTask!!, onDismiss = { showDialog = false })
+    }
 }
 
 @Composable
 fun HistoryServiceCard(
     task: Request,
     isInProgress: Boolean = false,
-    onDoneClick: (() -> Unit)? = null
+    onDoneClick: (() -> Unit)? = null,
+    onClick: () -> Unit = {}
 ) {
     val serviceList = ServiceDataSource().loadServices()
     Card(
@@ -132,28 +138,18 @@ fun HistoryServiceCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (isInProgress) 160.dp else 120.dp) //taller if inProgress
+            .clickable { onClick() }
+            .height(if (isInProgress) 160.dp else 120.dp)
     ) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        Column(Modifier.fillMaxSize().padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .background(Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = null,
-                        tint = Color(0xFF2D2E2C),
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(Icons.Default.Build, contentDescription = null, tint = Color(0xFF2D2E2C), modifier = Modifier.size(24.dp))
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -167,19 +163,12 @@ fun HistoryServiceCard(
                             fontSize = 16.sp
                         )
                     )
-//                    Text(
-//                        text = "Technician: ${task.technicianName}",
-//                        style = MaterialTheme.typography.bodySmall.copy(
-//                            color = Color.LightGray,
-//                            fontSize = 12.sp
-//                        )
-//                    )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = task.offeredPrice.toString(),
+                    text = "RM ${task.offeredPrice}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -196,10 +185,7 @@ fun HistoryServiceCard(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(
-                        text = "Done",
-                        color = Color.White
-                    )
+                    Text(text = "Done", color = Color.White)
                 }
             }
         }
@@ -207,11 +193,7 @@ fun HistoryServiceCard(
 }
 
 @Composable
-fun TabButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
+fun TabButton(text: String, selected: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
@@ -222,9 +204,54 @@ fun TabButton(
         shape = RoundedCornerShape(50),
         modifier = Modifier.padding(4.dp)
     ) {
-        Text(
-            text = text,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-        )
+        Text(text, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
+    }
+}
+
+@Composable
+fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth(0.9f).padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Order: R${task.id}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                fun format(ts: Timestamp?) = ts?.toDate()?.let {
+                    val df = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                    val tf = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    "Date: ${df.format(it)}\nTime: ${tf.format(it)}"
+                } ?: "N/A"
+
+                TimelineStep("Request Posted", format(task.createdTime))
+                TimelineStep("Request Accepted", format(task.acceptedTime))
+                TimelineStep("Request Finished", format(task.finishedTime))
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Price: RM ${task.offeredPrice}")
+                Text("Text Description: ${task.textDescription}")
+            }
+        }
+    }
+}
+
+@Composable
+fun TimelineStep(title: String, timeInfo: String) {
+    Column(horizontalAlignment = Alignment.Start) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(10.dp).background(Color.Black, CircleShape)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(title, fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(timeInfo, fontSize = 12.sp, color = Color.DarkGray)
+        Spacer(Modifier.height(12.dp))
     }
 }

@@ -4,7 +4,7 @@ import com.tarumt.techswift.Model.Request
 
 
 
-// Full UI State for the History screen
+
 data class TechnicianHistoryUiState(
     val inProgressTasks: List<Request> = emptyList(),
     val finishedTasks: List<Request> = emptyList(),

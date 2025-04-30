@@ -1,5 +1,7 @@
 package com.tarumt.techswift.Technician
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 
 @Composable
@@ -88,10 +93,70 @@ fun TechnicianHomeUI(
                                 TaskCard(
                                     serviceName = stringResource(serviceList[task.serviceId].label),
                                     price = task.offeredPrice.toString(),
-                                    onAccept = { viewModel.acceptTask(task, context) }
+                                    onAccept = { viewModel.acceptTask(task, context) },
+                                    onClick = { viewModel.onTaskSelected(task) }
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        //  Custom Dialog
+        if (uiState.showDialog && uiState.selectedTask != null) {
+            Dialog(onDismissRequest = { viewModel.dismissDialog() }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .fillMaxHeight(0.45f)
+                        .background(Color.White, shape = RoundedCornerShape(16.dp))
+                        .padding(20.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = "Task: R${uiState.selectedTask!!.id}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Service: ${
+                                stringResource(serviceList[uiState.selectedTask!!.serviceId].label)
+                            }",
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        Text(
+                            text = "Description: ${uiState.selectedTask!!.textDescription}",
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        Text(
+                            text = "Price: RM ${
+                                String.format("%.2f", uiState.selectedTask!!.offeredPrice ?: 0.00)
+                            }",
+                            fontSize = 16.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Button(
+                            onClick = { viewModel.dismissDialog() },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF7B61FF),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("Close")
                         }
                     }
                 }
@@ -101,13 +166,14 @@ fun TechnicianHomeUI(
 }
 
 @Composable
-fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit) {
+fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
+            .clickable { onClick() },
     ) {
         Box(
             modifier = Modifier

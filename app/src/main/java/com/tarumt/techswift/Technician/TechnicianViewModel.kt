@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tarumt.techswift.Model.Request
@@ -40,7 +41,9 @@ class TechnicianViewModel : ViewModel() {
                         pending = doc.getBoolean("pending") ?: true,
                         technicianId = doc.getString("technicianId") ?: "",
                         createdTime =doc.getTimestamp("createdTime") ?:null,
-                        offeredPrice = doc.getDouble("offeredPrice")
+                        offeredPrice = doc.getDouble("offeredPrice"),
+                        acceptedTime = null,
+                        finishedTime = null
 
                     )
                 }
@@ -59,12 +62,14 @@ class TechnicianViewModel : ViewModel() {
 
     fun acceptTask(task: Request, context: Context) {
         val auth=FirebaseAuth.getInstance()
+        val acceptedTimestamp = com.google.firebase.Timestamp.now()
         db.collection("requests").document("R"+task.id.toString())
             .update(
                 mapOf(
                     "pending" to false,
                     "status" to "inProgress",
-                    "technicianId" to auth.currentUser?.uid
+                    "technicianId" to auth.currentUser?.uid,
+                    "acceptedTime" to acceptedTimestamp
                 )
             )
             .addOnSuccessListener {
@@ -107,5 +112,12 @@ class TechnicianViewModel : ViewModel() {
             .addOnFailureListener {
                 Log.e("Firestore", "Failed to fetch user address")
             }
+    }
+    fun onTaskSelected(task: Request) {
+        _uiState.update { it.copy(selectedTask = task, showDialog = true) }
+    }
+
+    fun dismissDialog() {
+        _uiState.update { it.copy(showDialog = false, selectedTask = null) }
     }
 }
