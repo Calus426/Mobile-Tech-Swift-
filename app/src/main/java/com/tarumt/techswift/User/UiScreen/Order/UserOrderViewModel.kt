@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.History
+package com.tarumt.techswift.User.UiScreen.Order
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -14,10 +14,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class UserHistoryViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(UserHistoryUiState())
-    val uiState: StateFlow<UserHistoryUiState> = _uiState.asStateFlow()
-    private var finishedListener: ListenerRegistration? = null
+class UserOrderViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(UserOrderUiState())
+    val uiState: StateFlow<UserOrderUiState> = _uiState.asStateFlow()
+    private var pendingListener: ListenerRegistration? = null
+    private var inProgressListener: ListenerRegistration? = null
 
     private var currentUserId: String? = null
 
@@ -43,33 +44,34 @@ class UserHistoryViewModel : ViewModel() {
 
     fun resetAndReloadHistory() {
         // Clear existing listeners
-        finishedListener?.remove()
+        pendingListener?.remove()
+        inProgressListener?.remove()
 
         // Reset state
-        _uiState.value = UserHistoryUiState()
+        _uiState.value = UserOrderUiState()
 
         // Reload data for new user
-        loadFinishedList()
+        loadPendingRequest()
+        loadInProgressRequest()
         Log.d("HistoryVM", "Reloaded history for new user")
     }
 
     fun clearHistory() {
-        finishedListener?.remove()
-        _uiState.value = UserHistoryUiState()
+        pendingListener?.remove()
+        inProgressListener?.remove()
+        _uiState.value = UserOrderUiState()
     }
 
-    fun loadFinishedList() {
-
+    fun loadPendingRequest() {
         currentUserId?.let { userId ->
             val db = Firebase.firestore
             val collectionRef = db.collection("requests")
 
-            finishedListener?.remove()
+            pendingListener?.remove()
 
-            finishedListener = collectionRef
+            pendingListener = collectionRef
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("pending", false)
-                .whereEqualTo("status", "finished")
+                .whereEqualTo("pending", true)
                 .orderBy("createdTime", Query.Direction.DESCENDING)
                 .addSnapshotListener { querySnapshot, error ->
                     if (error != null) {
@@ -79,24 +81,75 @@ class UserHistoryViewModel : ViewModel() {
 
                     if (querySnapshot != null && !querySnapshot.isEmpty) {
                         val pendingRequests = querySnapshot.toObjects(Request::class.java)
-                        updateFinishedRequestList(pendingRequests)
+                        updatePendingRequestList(pendingRequests)
                     } else {
 
-                        updateFinishedRequestList(emptyList<Request>().toMutableList())
+                        updatePendingRequestList(emptyList<Request>().toMutableList())
                     }
 
                 }
         }
 
+
     }
 
-    fun updateFinishedRequestList(finishedList : MutableList<Request>){
-        _uiState.update { currentState ->
-            currentState.copy(
-                finishedList = finishedList
-            )
+    fun loadInProgressRequest() {
+        currentUserId?.let { userId ->
+            val db = Firebase.firestore
+            val collectionRef = db.collection("requests")
+
+            inProgressListener?.remove()
+
+            inProgressListener = collectionRef
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("pending", false)
+                .whereEqualTo("status", "inProgress")
+                .orderBy("createdTime", Query.Direction.DESCENDING)
+                .addSnapshotListener { querySnapshot, error ->
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error)
+                        return@addSnapshotListener
+                    }
+
+                    if (querySnapshot != null && !querySnapshot.isEmpty) {
+                        val inProgressRequest = querySnapshot.toObjects(Request::class.java)
+                        updateInProgressRequestList(inProgressRequest)
+                    } else {
+
+                        updateInProgressRequestList(emptyList<Request>().toMutableList())
+                    }
+
+                }
         }
     }
+
+
+    fun updatePendingRequestList(pendingRequests: MutableList<Request>) {
+        _uiState.update { currentState ->
+            currentState.copy(pendingList = pendingRequests.toMutableList())
+        }
+
+    }
+
+    fun updateInProgressRequestList(inProgressRequest: MutableList<Request>) {
+        _uiState.update { currentState ->
+            currentState.copy(inProgressList = inProgressRequest.toMutableList())
+        }
+
+    }
+
+    fun clearToastMessage() {
+        _uiState.update { currentState ->
+            currentState.copy(toastMessage = "")
+        }
+    }
+
+    fun updateToastMessage(text: String) {
+        _uiState.update { currentState ->
+            currentState.copy(toastMessage = text)
+        }
+    }
+
 
     fun getTechnicianDetails(technicianId: String){
 
@@ -110,6 +163,7 @@ class UserHistoryViewModel : ViewModel() {
                         _uiState.update { currentState ->
                             currentState.copy(
                                 technicianName = it.name,
+                                technicianPhone = it.phone
                             )
                         }
 
@@ -123,3 +177,4 @@ class UserHistoryViewModel : ViewModel() {
             }
     }
 }
+

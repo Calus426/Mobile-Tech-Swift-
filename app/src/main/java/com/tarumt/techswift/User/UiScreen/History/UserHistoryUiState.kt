@@ -1,12 +1,10 @@
 package com.tarumt.techswift.User.UiScreen.History
 
 import com.tarumt.techswift.Model.Request
+import com.tarumt.techswift.Model.Service
+
 
 data class UserHistoryUiState(
-    val inProgressList: List<Request> = emptyList(),
-    val pendingList: List<Request> = emptyList(),
-    val count : Int = 0,
-    val toastMessage: String = "",
-    val technicianName : String = "",
-    val technicianPhone : String = ""
+    val finishedList : List<Request> = emptyList(),
+    val technicianName : String = ""
 )

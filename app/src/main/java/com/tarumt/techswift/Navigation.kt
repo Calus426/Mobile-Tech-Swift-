@@ -20,16 +20,17 @@ import com.tarumt.techswift.Profile.ProfileViewModel
 import com.tarumt.techswift.Technician.TechnicianHistory.TechnicianHistoryUi
 import com.tarumt.techswift.Technician.TechnicianHomeUI
 import com.tarumt.techswift.User.UiScreen.History.UserHistoryUI
-import com.tarumt.techswift.User.UiScreen.History.UserHistoryViewModel
 import com.tarumt.techswift.User.UiScreen.Home.UserHomeUI
+import com.tarumt.techswift.User.UiScreen.Order.UserOrderUI
+import com.tarumt.techswift.User.UiScreen.Order.UserOrderViewModel
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
 import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
 
 
-
 enum class Navigation(@StringRes val title: Int, val canNavigate: Boolean) {
     UserHome(title = R.string.home, canNavigate = false),
-    UserHistory(title = R.string.history, canNavigate = false),
+    UserOrder(title = R.string.order, canNavigate = false),
+    UserHistory(title = R.string.history, canNavigate = true),
     ServiceDetails(title = R.string.service_details, canNavigate = true),
     Profile(title = R.string.profile, canNavigate = true),
     Login(title = R.string.login, canNavigate = false),
@@ -43,7 +44,7 @@ fun Navigate(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     serviceViewModel: ServiceDetailsViewModel = viewModel(),
-    userHistoryViewModel: UserHistoryViewModel = viewModel(),
+    userOrderViewModel: UserOrderViewModel = viewModel(),
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel = viewModel(),
     windowInfo: WindowInfo
@@ -133,8 +134,8 @@ fun Navigate(
             ServiceDetailsUI(
                 serviceViewModel,
                 onSubmitRequestClicked = {
-                    userHistoryViewModel.updateToastMessage(it)
-                    navController.navigate(Navigation.UserHistory.name) {
+                    userOrderViewModel.updateToastMessage(it)
+                    navController.navigate(Navigation.UserOrder.name) {
                         // clears the entire back stack
                         popUpTo(0) // Clears all back stack
                     }
@@ -142,10 +143,14 @@ fun Navigate(
             )
         }
 
-        composable(route = Navigation.UserHistory.name) {
-            UserHistoryUI(
-                userHistoryViewModel
+        composable(route = Navigation.UserOrder.name) {
+            UserOrderUI(
+                userOrderViewModel
             )
+        }
+
+        composable(route = Navigation.UserHistory.name) {
+            UserHistoryUI()
         }
 
         composable(route = Navigation.Profile.name) {

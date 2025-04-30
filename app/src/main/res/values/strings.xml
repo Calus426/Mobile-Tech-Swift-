@@ -9,6 +9,7 @@
     <string name="light">Light</string>
     <string name="home">Home</string>
     <string name="history">History</string>
+    <string name="order">Order</string>
     <string name="service_details">ServiceDetails</string>
     <string name="submit_service_request">Submit Service Request</string>
     <string name="profile">Profile</string>

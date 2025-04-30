@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -93,10 +94,10 @@ fun MainScreen(
             if (role.value == "U") Navigation.UserHome.name else Navigation.TechnicianHome.name
         ),
         NavItem(
-            stringResource(R.string.history),
+            stringResource(R.string.order),
             R.drawable.orderselected,
             R.drawable.ordernonselected,
-            if (role.value == "U") Navigation.UserHistory.name else Navigation.TechnicianHistory.name
+            if (role.value == "U") Navigation.UserOrder.name else Navigation.TechnicianHistory.name
         )
     )
 
@@ -141,7 +142,8 @@ fun MainScreen(
 
                             },
                             uiState.value.oriProfile.profileAvatar,
-                            uiState.value.oriProfile.name
+                            uiState.value.oriProfile.name,
+                            windowInfo = windowInfo
                         )
 
                     }
@@ -384,7 +386,8 @@ fun DrawerContent(
     closeDrawer: () -> Unit,
     onLogoutClick: () -> Unit,
     profileAvatar: String,
-    name: String
+    name: String,
+    windowInfo: WindowInfo
 ) {
 
     Row(
@@ -440,6 +443,43 @@ fun DrawerContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        if(windowInfo.screenWidthInfo !is WindowInfo.WindowType.Compact){
+            NavigationDrawerItem(
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = stringResource(R.string.home),
+                        tint = Color.White,
+                        modifier = Modifier.size(40.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = stringResource(R.string.home),
+                        color = Color.White,
+                        fontSize = 25.sp
+                    )
+                },
+                selected = false,
+                onClick = {
+                    navController.navigate(Navigation.UserHome.name) {
+                        popUpTo(Navigation.UserHome.name) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                    closeDrawer()
+                },
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = Color.Transparent,  // No background on selection
+                    unselectedContainerColor = Color.Transparent // No background when not selected
+                ),
+                shape = RoundedCornerShape(0.dp),// Remove rounded corners
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
         NavigationDrawerItem(
             icon = {
                 Icon(
@@ -486,7 +526,10 @@ fun DrawerContent(
                 )
             },
             selected = false,
-            onClick = {},
+            onClick = {
+                navController.navigate(Navigation.UserHistory.name)
+                closeDrawer()
+            },
             colors = NavigationDrawerItemDefaults.colors(
                 selectedContainerColor = Color.Transparent,  // No background on selection
                 unselectedContainerColor = Color.Transparent // No background when not selected
