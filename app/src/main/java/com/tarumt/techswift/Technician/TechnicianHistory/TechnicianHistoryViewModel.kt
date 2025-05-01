@@ -1,6 +1,7 @@
 package com.tarumt.techswift.Technician.TechnicianHistory
 
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Technician.TechnicianUiState
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class TechnicianHistoryViewModel : ViewModel() {
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
     private val _uiState = MutableStateFlow(TechnicianHistoryUiState())
     val uiState: StateFlow<TechnicianHistoryUiState> = _uiState.asStateFlow()
@@ -19,7 +21,8 @@ class TechnicianHistoryViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         db.collection("requests")
-            .whereEqualTo("pending", false) // Only accepted tasks
+            .whereEqualTo("pending", false,)// Only accepted tasks
+            .whereEqualTo("technicianId",currentUserId)
             .get()
             .addOnSuccessListener { result ->
                 val inProgress = mutableListOf<Request>()
