@@ -67,6 +67,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.tarumt.techswift.BuildConfig
 import com.tarumt.techswift.R
+import com.tarumt.techswift.WindowInfo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -76,7 +77,8 @@ import java.util.Objects
 @Composable
 fun ServiceDetailsUI(
     serviceDetailsViewModel: ServiceDetailsViewModel = viewModel(),
-    onSubmitRequestClicked: (String) -> Unit
+    onSubmitRequestClicked: (String) -> Unit,
+    windowInfo : WindowInfo
 ) {
 
     val serviceDetailsUiState by serviceDetailsViewModel.uiState.collectAsState()
@@ -104,8 +106,11 @@ fun ServiceDetailsUI(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight()
                     .alpha(if (showProcessingDialog) 0.3f else 1f)
                     .verticalScroll(rememberScrollState())
+                    .padding(top = if (windowInfo.screenWidthInfo != WindowInfo.WindowType.Compact) 45 .dp else 0.dp)
+
             ) {
                 TextDescription(
                     serviceDetailsViewModel.userDescription,
@@ -412,9 +417,3 @@ fun Context.createImageFile(): File {
     return image
 }
 
-
-@Composable
-@Preview
-fun ServiceDetailsPreview() {
-    ServiceDetailsUI {}
-}

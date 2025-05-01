@@ -8,5 +8,6 @@ data class UserOrderUiState(
     val count : Int = 0,
     val toastMessage: String = "",
     val technicianName : String = "",
-    val technicianPhone : String = ""
+    val technicianPhone : String = "",
+    val statusScreen : String = "inProgress"
 )

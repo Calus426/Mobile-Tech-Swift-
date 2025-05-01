@@ -84,7 +84,6 @@ fun UserOrderUI(
 
     val serviceList = remember { ServiceDataSource().loadServices() }
 
-    var statusScreen by remember { mutableStateOf("inProgress") }
 
 
 
@@ -124,13 +123,13 @@ fun UserOrderUI(
 
             ) {
                 StatusSelection(
-                    onStatusSelected = { statusScreen = it },
-                    currentStatus = statusScreen
+                    onStatusSelected = { viewModel.statusScreenUpdate(it) },
+                    currentStatus = uiState.statusScreen
                 )
 
                 LazyColumn {
 
-                    if (statusScreen.equals("inProgress")) {
+                    if (uiState.statusScreen.equals("inProgress")) {
                         items(uiState.inProgressList) { inProgress ->
                             val service = serviceList[inProgress.serviceId]
                             ServiceCard(inProgress, service, viewModel, uiState, context)
@@ -177,10 +176,6 @@ fun ServiceCard(
         val (date, time) = parseTimestamp(request.finishedTime)
         orderEvents.add(OrderEvent("Request Finished",date,time))
     }
-
-
-
-
 
     var showInfoBox by remember { mutableStateOf(false) }
     if (showInfoBox) {
@@ -270,7 +265,7 @@ fun ServiceCard(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(0.6f)
                         .fillMaxWidth(0.3f),
                     contentAlignment = Alignment.Center
                 ) {

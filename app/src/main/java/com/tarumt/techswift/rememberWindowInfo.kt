@@ -21,6 +21,7 @@ fun rememberWindowInfo() : WindowInfo{
         },
         screenWidth = configuration.screenWidthDp.dp,
         screenHeight = configuration.screenHeightDp.dp
+
     )
 }
 

@@ -13,11 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import com.tarumt.techswift.Login_Signup.UiScreen.SignUp.SignUpUI
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
+import com.tarumt.techswift.WindowInfo
 
 @Composable
-fun FlipCard(authViewModel: AuthViewModel, onLoginButtonClick:()->Unit) {
+fun FlipCard(authViewModel: AuthViewModel, onLoginButtonClick: () -> Unit, windowInfo: WindowInfo) {
     var isLogin by remember { mutableStateOf(true) }
 
 
@@ -25,7 +27,7 @@ fun FlipCard(authViewModel: AuthViewModel, onLoginButtonClick:()->Unit) {
     val rotation by animateFloatAsState(
         targetValue = if (isLogin) 0f else 180f,
         animationSpec = tween(
-            durationMillis = 700,
+            durationMillis = 800,
             easing = FastOutSlowInEasing
         ),
         label = "cardRotation"
@@ -34,7 +36,7 @@ fun FlipCard(authViewModel: AuthViewModel, onLoginButtonClick:()->Unit) {
     // Scale effect for zoom in/out
     val scale by animateFloatAsState(
         targetValue = if (rotation % 180 == 0f) 1f else 0.9f,
-        animationSpec = tween(durationMillis = 300),
+        animationSpec = tween(durationMillis = 400),
         label = "scaleAnim"
     )
 
@@ -45,41 +47,51 @@ fun FlipCard(authViewModel: AuthViewModel, onLoginButtonClick:()->Unit) {
     val isFrontVisible = rotation <= 90f
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // SignUp UI (Back side)
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationY = rotation + 180f
+                    scaleX = scale
+                    scaleY = scale
+                    alpha = backAlpha
+                    cameraDistance = 12 * density
+                }
+                .then(if (isFrontVisible) Modifier else Modifier) // keep modifier chain clean
+                .pointerInput(Unit) {} // consume events when visible only
+                .let { if (isFrontVisible) Modifier else it } // only SignUp gets touchable when on back
+        ) {
+            if (!isFrontVisible) {
+                SignUpUI(
+                    authViewModel = authViewModel,
+                    onLoginClick = { isLogin = true },
+                    windowInfo = windowInfo
+                )
+            }
+        }
+
+        // Login UI (Front side)
         Box(
             modifier = Modifier
                 .graphicsLayer {
                     rotationY = rotation
                     scaleX = scale
                     scaleY = scale
+                    alpha = frontAlpha
                     cameraDistance = 12 * density
                 }
+                .let { if (isFrontVisible) it else Modifier.pointerInput(Unit) {} }
         ) {
             if (isFrontVisible) {
-                Box(modifier = Modifier.graphicsLayer {
-                    alpha = frontAlpha
-                }) {
-                    LoginUI(
-                        authViewModel = authViewModel,
-                        onSignUpClick = { isLogin = false },
-                        onLoginButtonClick = onLoginButtonClick
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier.graphicsLayer {
-                        rotationY = 180f
-                        alpha = backAlpha
-                    }
-                ) {
-                    SignUpUI(
-                        authViewModel = authViewModel,
-                        onLoginClick = { isLogin = true }
-                    )
-                }
+                LoginUI(
+                    authViewModel = authViewModel,
+                    onSignUpClick = { isLogin = false },
+                    onLoginButtonClick = onLoginButtonClick,
+                    windowInfo = windowInfo
+                )
             }
         }
     }

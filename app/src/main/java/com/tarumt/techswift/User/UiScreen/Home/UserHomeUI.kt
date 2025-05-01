@@ -46,10 +46,14 @@ fun UserHomeUI(
 
 
     val gridcells : Int
-    if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact){
+    if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact){ //phone vertical
         gridcells = 2
     }
-    else{
+    else if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Medium
+        && windowInfo.screenHeightInfo is WindowInfo.WindowType.Expanded){  //tablet vertical
+        gridcells = 2
+    }
+    else{ 
         gridcells = 3
     }
     val homeUiState by homeViewModel.uiState.collectAsState()
@@ -61,7 +65,7 @@ fun UserHomeUI(
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.8f)
+                .fillMaxHeight(if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact) 0.8f else 0.9f)
                 .padding(1.dp),
             shape = RoundedCornerShape(30.dp), // Rounded corners
             elevation = CardDefaults.cardElevation(4.dp),
@@ -74,7 +78,7 @@ fun UserHomeUI(
                    modifier = Modifier
                        .fillMaxWidth()
                        .height(80.dp),
-                   contentAlignment = Alignment.Center
+                   contentAlignment = Alignment.BottomCenter
                ){
                    Text(
                        text = stringResource(R.string.select_service),
@@ -90,8 +94,8 @@ fun UserHomeUI(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(gridcells), // 2 columns grid
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.SpaceAround,
+                    horizontalArrangement = Arrangement.SpaceAround,
                     contentPadding = PaddingValues(16.dp) // Optional: consistent padding
                 ) {
                     items(homeUiState.listOfService.size){ index ->

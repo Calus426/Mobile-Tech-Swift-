@@ -62,6 +62,14 @@ class UserOrderViewModel : ViewModel() {
         _uiState.value = UserOrderUiState()
     }
 
+    fun statusScreenUpdate(screen : String){
+        _uiState.update { currentState->
+            currentState.copy(
+                statusScreen = screen
+            )
+        }
+    }
+
     fun loadPendingRequest() {
         currentUserId?.let { userId ->
             val db = Firebase.firestore

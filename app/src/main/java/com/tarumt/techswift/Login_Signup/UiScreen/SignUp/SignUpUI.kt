@@ -46,6 +46,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -69,13 +70,15 @@ import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
 import com.tarumt.techswift.R
 import com.tarumt.techswift.User.Datasource.genderList
 import com.tarumt.techswift.User.Datasource.roleList
+import com.tarumt.techswift.WindowInfo
 import kotlinx.coroutines.flow.debounce
 
 @Composable
 fun SignUpUI(
     authViewModel: AuthViewModel,
     onLoginClick: () -> Unit,
-    signUpViewModel: SignUpViewModel = viewModel()
+    signUpViewModel: SignUpViewModel = viewModel(),
+    windowInfo: WindowInfo
 ) {
 
     val uiState = signUpViewModel.uiState.collectAsState()
@@ -130,7 +133,8 @@ fun SignUpUI(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .alpha(if (showProcessingDialog) 0.3f else 1f),
+                    .alpha(if (showProcessingDialog) 0.3f else 1f)
+                    .scale(if(windowInfo.screenWidthInfo != WindowInfo.WindowType.Compact)1.5f else 0.85f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -141,73 +145,78 @@ fun SignUpUI(
                     modifier = Modifier.padding(top = 15.dp)
                 )
 
-                //Email Field
-                OutlinedTextField(
-                    value = signUpViewModel.email,
-                    onValueChange = {
-                        signUpViewModel.emailUpdate(it)
-                    },
-                    label = {
-                        Text("Email")
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    isError = uiState.value.textFieldError[0]
+                Column{
+                    //Email Field
+                    OutlinedTextField(
+                        value = signUpViewModel.email,
+                        onValueChange = {
+                            signUpViewModel.emailUpdate(it)
+                        },
+                        label = {
+                            Text("Email")
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        isError = uiState.value.textFieldError[0]
 
-                )
-                if (uiState.value.textFieldError[0]) {
-                    Text(
-                        text = "The email format is not correct!",
-                        color = Color.Red,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 9.dp, top = 4.dp)
                     )
+                    if (uiState.value.textFieldError[0]) {
+                        Text(
+                            text = "The email format is not correct!",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+                        )
+                    }
                 }
+
 
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                //Password Field
-                OutlinedTextField(
-                    value = signUpViewModel.password,
-                    onValueChange = {
-                        signUpViewModel.passwordUpdate(it)
-                    },
-                    label = {
-                        Text("Password")
-                    },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (passwordVisible)
-                            R.drawable.baseline_visibility_24
-                        else R.drawable.baseline_visibility_off_24
+                Column{
+                    //Password Field
+                    OutlinedTextField(
+                        value = signUpViewModel.password,
+                        onValueChange = {
+                            signUpViewModel.passwordUpdate(it)
+                        },
+                        label = {
+                            Text("Password")
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible)
+                                R.drawable.baseline_visibility_24
+                            else R.drawable.baseline_visibility_off_24
 
-                        Image(
-                            painter = painterResource(id = image),
-                            contentDescription = "Toggle password visibility",
-                            modifier = Modifier
-                                .clickable { passwordVisible = !passwordVisible }
-                                .padding(8.dp)
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
+                            Image(
+                                painter = painterResource(id = image),
+                                contentDescription = "Toggle password visibility",
+                                modifier = Modifier
+                                    .clickable { passwordVisible = !passwordVisible }
+                                    .padding(8.dp)
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
 
-                    isError = uiState.value.textFieldError[1]
+                        isError = uiState.value.textFieldError[1]
 
-                )
-
-                if (uiState.value.textFieldError[1]) {
-                    Text(
-                        text = "The password cannot be empty!",
-                        color = Color.Red,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 9.dp, top = 4.dp)
                     )
+
+                    if (uiState.value.textFieldError[1]) {
+                        Text(
+                            text = "The password cannot be empty!",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -220,7 +229,6 @@ fun SignUpUI(
                     keyboardType = KeyboardType.Text,
                     error = uiState.value.textFieldError[2],
                     errorText = "Name cannot be empty!"
-
                 )
 
                 //Phone
@@ -352,12 +360,13 @@ private fun RadioButtonSelection(list: List<String>, selected: String, onClick: 
     ) {
 //
         Row(
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
             list.forEach { item ->
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 15.dp)
                 ) {
                     RadioButton(
                         selected = selected == item,
@@ -381,27 +390,30 @@ private fun UserDetailsField(
     errorText: String,
     keyboardActions: KeyboardActions = KeyboardActions()
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
-            Text(label)
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = imeAction
-        ),
-        keyboardActions = keyboardActions,
-        isError = error
-    )
-    if (error) {
-        Text(
-            text = errorText,
-            color = Color.Red,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+    Column{
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = {
+                Text(label)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
+            keyboardActions = keyboardActions,
+            isError = error
         )
+        if (error) {
+            Text(
+                text = errorText,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+            )
+        }
     }
+
 
     Spacer(modifier = Modifier.height(8.dp))
 }
@@ -435,28 +447,31 @@ fun AddressTextField(
                 expanded = it
             }
         ) {
-            OutlinedTextField(
-                value = address,
-                onValueChange = {
-                    onValueChange(it)
-                    expanded = true
-                },
-                label = {
-                    Text("Address 1")
-                },
-                modifier = Modifier
-                    .menuAnchor(),
-                isError = error
+            Column{
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = {
+                        onValueChange(it)
+                        expanded = true
+                    },
+                    label = {
+                        Text("Address 1")
+                    },
+                    modifier = Modifier
+                        .menuAnchor(),
+                    isError = error
 
-            )
-            if (error) {
-                Text(
-                    text = errorText,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 9.dp, top = 4.dp)
                 )
+                if (error) {
+                    Text(
+                        text = errorText,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 9.dp, top = 4.dp)
+                    )
+                }
             }
+
 
             ExposedDropdownMenu(
                 expanded = expanded && suggestions.isNotEmpty(),

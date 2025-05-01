@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,6 +36,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -74,6 +77,7 @@ import com.tarumt.techswift.Profile.ProfileViewModel
 import com.tarumt.techswift.ui.theme.BottomBar
 import com.tarumt.techswift.ui.theme.GreenBackground
 import com.tarumt.techswift.ui.theme.provider
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -99,7 +103,7 @@ fun MainScreen(
             if (role.value == "U") Navigation.UserHome.name else Navigation.TechnicianHome.name
         ),
         NavItem(
-            stringResource(R.string.order),
+            if(role.value == "U") stringResource(R.string.order) else stringResource(R.string.history) ,
             R.drawable.orderselected,
             R.drawable.ordernonselected,
             if (role.value == "U") Navigation.UserOrder.name else Navigation.TechnicianHistory.name
@@ -116,120 +120,92 @@ fun MainScreen(
     )
     val scope = rememberCoroutineScope()
 
-    val showElement = currentRoute != Navigation.Login.name
+    val login = currentRoute != Navigation.Login.name
 
 
 
-    if (authState.value == null || role.value == null) {
+    if (authState.value == null || role.value == null) { //Loading
         return
     } else {
-        if (showElement) {
-            val navViewModel : NavViewModel = viewModel()
-            val profileViewModel: ProfileViewModel = viewModel()
-            val uiState = profileViewModel.uiState.collectAsState()
-            ModalNavigationDrawer(
-                drawerState = drawerState,
-                drawerContent = {
-                    ModalDrawerSheet(
-                        drawerContainerColor = GreenBackground
-                    ) {
+        val navViewModel: NavViewModel = viewModel()
+        val profileViewModel: ProfileViewModel = viewModel()
+        val uiState = profileViewModel.uiState.collectAsState()
 
-                        DrawerContent(
-                            navController,
-                            closeDrawer = {
-                                scope.launch {
-                                    drawerState.close()
+        if (login) { //Check if is in login page
 
-                                }
-                            },
-                            onLogoutClick = {
-                                authViewModel.signout()
-
-                            },
-                            uiState.value.oriProfile.profileAvatar,
-                            uiState.value.oriProfile.name,
-                            windowInfo = windowInfo,
-                            role = role.value,
-                        )
-
-                    }
-                }
+            if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact ||
+                windowInfo.screenHeightInfo is WindowInfo.WindowType.Compact
             ) {
-                if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact) {
-                    Scaffold(
-                        containerColor = GreenBackground,
-                        modifier = Modifier.fillMaxSize(),
-                        bottomBar = {
-                            BottomNavigationBar(
-                                navItemList,
-                                selectedButton,
-                                currentRoute,
-                                navController
-                            )
-                        },
-                        topBar = {
-                            TopBarApp(
-                                currentScreen = currentScreen,
-                                navigateUp = { navController.navigateUp() },
-                                onOpenDrawer = {
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        ModalDrawerSheet(
+                            drawerContainerColor = GreenBackground
+                        ) {
+
+                            DrawerContent(
+                                navController,
+                                closeDrawer = {
                                     scope.launch {
-                                        drawerState.apply {
-                                            if (isClosed) open() else close()
-                                        }
+                                        drawerState.close()
+
                                     }
                                 },
-                                height = 95.dp
+                                onLogoutClick = {
+                                    authViewModel.signout()
 
-                            )
-                        }
-
-                    ) { innerPadding ->
-                        Navigate(
-                            navController = navController,
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .zIndex(1f),
-                            authViewModel = authViewModel,
-                            profileViewModel = profileViewModel,
-                            windowInfo = windowInfo,
-                            navViewModel = navViewModel
-                        )
-
-                    }
-                } else {
-                    Scaffold(
-                        containerColor = GreenBackground,
-                        modifier = Modifier.fillMaxSize(),
-                        topBar = {
-                            TopBarApp(
-                                currentScreen = currentScreen,
-                                navigateUp = { navController.navigateUp() },
-                                onOpenDrawer = {
-                                    scope.launch {
-                                        drawerState.apply {
-                                            if (isClosed) open() else close()
-                                        }
-                                    }
                                 },
-                                height = 65.dp
+                                uiState.value.oriProfile.profileAvatar,
+                                uiState.value.oriProfile.name,
+                                windowInfo = windowInfo,
+                                role = role.value,
                             )
+
                         }
-
-                    ) { innerPadding ->
-                        Navigate(
-                            navController = navController,
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .zIndex(1f),
-                            authViewModel = authViewModel,
-                            profileViewModel = profileViewModel,
-                            windowInfo = windowInfo,
-                            navViewModel = navViewModel
-                        )
-
                     }
+                ) {
+                    CompactScaffold(
+                        navItemList,
+                        selectedButton,
+                        currentRoute,
+                        navController,
+                        currentScreen,
+                        scope,
+                        drawerState,
+                        authViewModel,
+                        profileViewModel,
+                        windowInfo,
+                        navViewModel
+                    )
                 }
 
+            } else {
+                PermanentNavigationDrawer(
+                    drawerContent = {
+                        PermanentDrawerSheet(drawerContainerColor = GreenBackground) {
+                            DrawerContent(
+                                navController,
+                                closeDrawer = {}, // Not closable
+                                onLogoutClick = { authViewModel.signout() },
+                                profileAvatar = uiState.value.oriProfile.profileAvatar,
+                                name = uiState.value.oriProfile.name,
+                                windowInfo = windowInfo,
+                                role = role.value
+                            )
+                        }
+                    }
+                ) {
+                    TabletScaffold(
+                        currentScreen,
+                        navController,
+                        scope,
+                        drawerState,
+                        authViewModel,
+                        profileViewModel,
+                        windowInfo,
+                        navViewModel
+                    )
+                }
             }
         } else {
             Scaffold(
@@ -257,13 +233,117 @@ fun MainScreen(
 
 }
 
+@Composable
+private fun TabletScaffold(
+    currentScreen: Navigation?,
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    authViewModel: AuthViewModel,
+    profileViewModel: ProfileViewModel,
+    windowInfo: WindowInfo,
+    navViewModel: NavViewModel
+) {
+    Scaffold(
+        containerColor = GreenBackground,
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopBarApp(
+                currentScreen = currentScreen,
+                navigateUp = { navController.navigateUp() },
+                onOpenDrawer = {
+                    scope.launch {
+                        drawerState.apply {
+                            if (isClosed) open() else close()
+                        }
+                    }
+                },
+                height = 65.dp,
+                windowInfo = windowInfo
+            )
+        }
+
+    ) { innerPadding ->
+        Navigate(
+            navController = navController,
+            modifier = Modifier
+                .padding(innerPadding)
+                .zIndex(1f),
+            authViewModel = authViewModel,
+            profileViewModel = profileViewModel,
+            windowInfo = windowInfo,
+            navViewModel = navViewModel
+        )
+
+    }
+}
+
+@Composable
+private fun CompactScaffold(
+    navItemList: List<NavItem>,
+    selectedButton: NavItem?,
+    currentRoute: String?,
+    navController: NavHostController,
+    currentScreen: Navigation?,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    authViewModel: AuthViewModel,
+    profileViewModel: ProfileViewModel,
+    windowInfo: WindowInfo,
+    navViewModel: NavViewModel
+) {
+    Scaffold(
+        containerColor = GreenBackground,
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact) {
+                BottomNavigationBar(
+                    navItemList,
+                    selectedButton,
+                    currentRoute,
+                    navController
+                )
+            }
+        },
+        topBar = {
+            TopBarApp(
+                currentScreen = currentScreen,
+                navigateUp = { navController.navigateUp() },
+                onOpenDrawer = {
+                    scope.launch {
+                        drawerState.apply {
+                            if (isClosed) open() else close()
+                        }
+                    }
+                },
+                height = 95.dp,
+                windowInfo = windowInfo
+            )
+        }
+
+    ) { innerPadding ->
+        Navigate(
+            navController = navController,
+            modifier = Modifier
+                .padding(innerPadding)
+                .zIndex(1f),
+            authViewModel = authViewModel,
+            profileViewModel = profileViewModel,
+            windowInfo = windowInfo,
+            navViewModel = navViewModel
+        )
+
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarApp(
     currentScreen: Navigation?,
     navigateUp: () -> Unit,
     onOpenDrawer: () -> Unit,
-    height: Dp
+    height: Dp,
+    windowInfo: WindowInfo
 ) {
 
     if (currentScreen != null && currentScreen != Navigation.Login) {
@@ -307,22 +387,27 @@ fun TopBarApp(
                         )
                     }
                 } else {
-                    IconButton(
-                        onClick = onOpenDrawer,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(45.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Menu",
-                            tint = Color.White,
+                    if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact ||
+                        windowInfo.screenHeightInfo is WindowInfo.WindowType.Compact
+                    ){
+                        IconButton(
+                            onClick = onOpenDrawer,
                             modifier = Modifier
-                                .padding(horizontal = 10.dp)
                                 .fillMaxHeight()
-                                .size(35.dp)
-                        )
+                                .width(45.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxHeight()
+                                    .size(35.dp)
+                            )
+                        }
                     }
+
                 }
             }
         )
@@ -400,8 +485,9 @@ fun DrawerContent(
 ) {
 
     Row(
-        modifier = Modifier.padding(30.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.padding(30.dp)
+            .fillMaxWidth(0.6f),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         AsyncImage(
             model = profileAvatar, // Directly pass Firebase Storage reference
@@ -430,7 +516,7 @@ fun DrawerContent(
             )
             Text(
                 text = name,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 color = Color.White
             )
         }
@@ -452,7 +538,7 @@ fun DrawerContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        if(windowInfo.screenWidthInfo !is WindowInfo.WindowType.Compact){
+        if (windowInfo.screenWidthInfo !is WindowInfo.WindowType.Compact) {
             NavigationDrawerItem(
                 icon = {
                     Icon(
@@ -492,7 +578,7 @@ fun DrawerContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            if(role == "U"){
+            if (role == "U") {
                 NavigationDrawerItem(
                     icon = {
                         Image(
@@ -548,8 +634,8 @@ fun DrawerContent(
             },
             selected = false,
             onClick = {
-                navController.navigate(Navigation.Profile.name){
-                    popUpTo(Navigation.Profile.name){
+                navController.navigate(Navigation.Profile.name) {
+                    popUpTo(Navigation.Profile.name) {
                         inclusive = true
                     }
                     launchSingleTop = true
@@ -577,7 +663,7 @@ fun DrawerContent(
                 Text(
                     text = stringResource(R.string.history),
                     color = Color.White,
-                    fontSize = 21.sp
+                    fontSize = 25.sp
                 )
             },
             selected = false,
@@ -588,7 +674,7 @@ fun DrawerContent(
                     else -> Navigation.Login.name
                 }
 
-                navController.navigate(destination){
+                navController.navigate(destination) {
                     popUpTo(destination) { inclusive = true }
                     launchSingleTop = true
                 }
@@ -606,7 +692,7 @@ fun DrawerContent(
         NavigationDrawerItem(
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.baseline_logout_24),
+                    painter = painterResource(R.drawable.sign_out),
                     contentDescription = "Logout",
                     tint = Color.White,
                     modifier = Modifier.size(40.dp)
@@ -616,7 +702,7 @@ fun DrawerContent(
                 Text(
                     text = "Logout",
                     color = Color.White,
-                    fontSize = 21.sp
+                    fontSize = 25.sp
                 )
             },
             selected = false,

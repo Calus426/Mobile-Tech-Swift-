@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -101,7 +103,6 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
        }
    }
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,13 +112,13 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
         //Check if the image loaded , if not the show loading
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
             if (!isLoading || uiState.value.oriProfile.profileAvatar.isEmpty()) {
                 Box {
                     Box(
                         modifier = Modifier
-                            .fillMaxHeight(0.1f)
+                            .height(40.dp) // Use fixed height instead of percentage
                             .fillMaxWidth()
                             .background(GreenBackground)
                     )
@@ -336,7 +337,7 @@ fun AddressTextField(
                     unfocusedContainerColor = Color(0xFFe0d4d4)
                 ),
                 modifier = Modifier
-                    .height(45.dp)
+                    .height(50.dp)
                     .menuAnchor()
                     .fillMaxWidth(),
                 singleLine = true,
@@ -392,13 +393,12 @@ fun AddressTextField(
                 OutlinedTextField(
                     value = postcode,
                     onValueChange = {},
-//            placeholder = { Text(placeholder,fontSize = 13.sp) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFFc2aaab),
                         unfocusedContainerColor = Color(0xFFc2aaab)
                     ),
                     modifier = Modifier
-                        .height(45.dp),
+                        .height(50.dp),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     textStyle = TextStyle(fontSize = 13.sp),
@@ -408,7 +408,7 @@ fun AddressTextField(
 
             Column(
                 Modifier
-                    .weight(0.7f)
+                    .weight(0.8f)
                     .padding(start = 4.dp)
             ) {
                 Text(
@@ -434,7 +434,8 @@ fun AddressTextField(
                         unfocusedContainerColor = Color(0xFFc2aaab)
                     ),
                     modifier = Modifier
-                        .height(45.dp),
+                        .height(50.dp)
+                        .fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     textStyle = TextStyle(fontSize = 13.sp),
@@ -481,7 +482,8 @@ fun DropdownSelection(fieldName: String, onValueChange: (String) -> Unit,gender:
             OutlinedTextField(
                 modifier = Modifier
                     .menuAnchor()
-                    .height(45.dp),
+                    .height(45.dp)
+                    .fillMaxWidth(),
                 value = selectedText,
                 onValueChange = { },
                 readOnly = true,
@@ -523,6 +525,7 @@ private fun ProfileTextField(fieldName: String, value: String, onValueChange: (S
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier.padding(bottom = 3.dp)
+            .fillMaxWidth()
     ) {
         Text(
             fieldName,
@@ -546,7 +549,8 @@ private fun ProfileTextField(fieldName: String, value: String, onValueChange: (S
                 unfocusedContainerColor = Color(0xFFe0d4d4)
             ),
             modifier = Modifier
-                .height(47.dp),
+                .height(47.dp)
+                .fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             textStyle = TextStyle(fontSize = 12.sp)

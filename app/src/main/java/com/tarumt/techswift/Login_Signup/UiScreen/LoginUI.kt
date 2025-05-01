@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,11 +34,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -45,9 +49,15 @@ import androidx.compose.ui.unit.sp
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthState
 import com.tarumt.techswift.Login_Signup.ViewModel.AuthViewModel
 import com.tarumt.techswift.R
+import com.tarumt.techswift.WindowInfo
 
 @Composable
-fun LoginUI(authViewModel: AuthViewModel, onSignUpClick: () -> Unit, onLoginButtonClick:()->Unit){
+fun LoginUI(
+    authViewModel: AuthViewModel,
+    onSignUpClick: () -> Unit,
+    onLoginButtonClick: () -> Unit,
+    windowInfo: WindowInfo
+){
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -86,7 +96,9 @@ fun LoginUI(authViewModel: AuthViewModel, onSignUpClick: () -> Unit, onLoginButt
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .scale(if(windowInfo.screenWidthInfo != WindowInfo.WindowType.Compact)1.5f else 1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ){
@@ -104,7 +116,9 @@ fun LoginUI(authViewModel: AuthViewModel, onSignUpClick: () -> Unit, onLoginButt
                     },
                     label = {
                         Text("Email")
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
+
 
                 )
 
@@ -133,7 +147,7 @@ fun LoginUI(authViewModel: AuthViewModel, onSignUpClick: () -> Unit, onLoginButt
                                 .padding(8.dp)
                         )
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password,imeAction = ImeAction.Done)
 
                 )
 

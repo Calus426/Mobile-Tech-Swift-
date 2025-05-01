@@ -98,7 +98,8 @@ fun Navigate(
             FlipCard(
                 authViewModel,
                 onLoginButtonClick = {
-                }
+                },
+                windowInfo = windowInfo
 
             )
         }
@@ -138,7 +139,8 @@ fun Navigate(
                         // clears the entire back stack
                         popUpTo(0) // Clears all back stack
                     }
-                }
+                },
+                windowInfo = windowInfo
             )
         }
 

@@ -215,7 +215,7 @@ fun ServiceCard(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(0.6f)
                         .fillMaxWidth(0.3f),
                     contentAlignment = Alignment.Center
                 ) {

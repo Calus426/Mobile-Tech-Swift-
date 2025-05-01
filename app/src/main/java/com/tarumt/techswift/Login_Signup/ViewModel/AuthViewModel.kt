@@ -45,7 +45,8 @@ class AuthViewModel: ViewModel() {
 
         }
         else{
-            auth.signInWithEmailAndPassword(email,password)
+
+            auth.signInWithEmailAndPassword(email.trim(),password.trim())
                 .addOnCompleteListener{task ->
                     if(task.isSuccessful){
                         fetchUserRole()
@@ -66,7 +67,7 @@ class AuthViewModel: ViewModel() {
             _authState.value = AuthState.Error("Email or password cannot be empty!")
         }
         else{
-            auth.createUserWithEmailAndPassword(email,password)
+            auth.createUserWithEmailAndPassword(email.trim(),password.trim())
                 .addOnCompleteListener{task ->
                     if(task.isSuccessful){
                         val uid = auth.currentUser?.uid ?: return@addOnCompleteListener
