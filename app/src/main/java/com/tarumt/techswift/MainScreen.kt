@@ -143,7 +143,8 @@ fun MainScreen(
                             },
                             uiState.value.oriProfile.profileAvatar,
                             uiState.value.oriProfile.name,
-                            windowInfo = windowInfo
+                            windowInfo = windowInfo,
+                            role = role.value,
                         )
 
                     }
@@ -387,6 +388,7 @@ fun DrawerContent(
     onLogoutClick: () -> Unit,
     profileAvatar: String,
     name: String,
+    role: String?,
     windowInfo: WindowInfo
 ) {
 
@@ -462,10 +464,14 @@ fun DrawerContent(
                 },
                 selected = false,
                 onClick = {
-                    navController.navigate(Navigation.UserHome.name) {
-                        popUpTo(Navigation.UserHome.name) {
-                            inclusive = true
-                        }
+                    val destination = when (role) {
+                        "T" -> Navigation.TechnicianHome.name
+                        "U" -> Navigation.UserHome.name
+                        else -> Navigation.Login.name
+                    }
+
+                    navController.navigate(destination) {
+                        popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
                     closeDrawer()
@@ -527,7 +533,16 @@ fun DrawerContent(
             },
             selected = false,
             onClick = {
-                navController.navigate(Navigation.UserHistory.name)
+                val destination = when (role) {
+                    "T" -> Navigation.TechnicianHistory.name
+                    "U" -> Navigation.UserHistory.name
+                    else -> Navigation.Login.name
+                }
+
+                navController.navigate(destination) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
                 closeDrawer()
             },
             colors = NavigationDrawerItemDefaults.colors(

@@ -44,12 +44,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Timestamp
+import com.tarumt.techswift.WindowInfo
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun TechnicianHomeUI(
-    viewModel: TechnicianViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: TechnicianViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    windowInfo: WindowInfo
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -68,6 +70,10 @@ fun TechnicianHomeUI(
                 )
             }
             else -> {
+                val contentModifier = Modifier
+                    .fillMaxWidth(if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Expanded) 0.8f else 0.9f)
+                    .fillMaxHeight(if (windowInfo.screenHeightInfo is WindowInfo.WindowType.Expanded) 0.9f else 0.8f)
+                    .padding(1.dp)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)

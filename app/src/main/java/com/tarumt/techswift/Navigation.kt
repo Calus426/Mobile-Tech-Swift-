@@ -122,11 +122,11 @@ fun Navigate(
         }
 
         composable(route = Navigation.TechnicianHome.name) {
-           TechnicianHomeUI()
+           TechnicianHomeUI(windowInfo = windowInfo)
         }
 
         composable(route = Navigation.TechnicianHistory.name) {
-            TechnicianHistoryUi()
+            TechnicianHistoryUi(windowInfo = windowInfo)
         }
 
 

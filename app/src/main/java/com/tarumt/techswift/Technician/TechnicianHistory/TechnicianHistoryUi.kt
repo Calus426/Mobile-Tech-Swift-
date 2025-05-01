@@ -54,9 +54,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
+import com.tarumt.techswift.WindowInfo
 
 @Composable
-fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
+fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel(),windowInfo: WindowInfo) {
 
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf("inProgress") }
@@ -67,11 +68,14 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
         viewModel.fetchHistory()
     }
 
+    val widthFraction = if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Expanded) 0.8f else 0.9f
+    val heightFraction = if (windowInfo.screenHeightInfo is WindowInfo.WindowType.Expanded) 0.9f else 0.85f
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Card(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.85f),
+                .fillMaxWidth(widthFraction)
+                .fillMaxHeight(heightFraction),
             shape = RoundedCornerShape(30.dp),
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -125,7 +129,7 @@ fun TechnicianHistoryUi(viewModel: TechnicianHistoryViewModel = viewModel()) {
     }
 
     if (showDialog && selectedTask != null) {
-        TaskTimelineDialog(task = selectedTask!!, onDismiss = { showDialog = false })
+        TaskTimelineDialog(task = selectedTask!!, onDismiss = { showDialog = false },windowInfo = windowInfo)
     }
 }
 
@@ -213,12 +217,12 @@ fun TabButton(text: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit) {
+fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit,windowInfo: WindowInfo) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Expanded) 0.7f else 0.9f)
                 .padding(16.dp)
         ) {
             Column(
