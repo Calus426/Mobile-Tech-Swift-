@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -47,10 +45,11 @@ fun Navigate(
     userOrderViewModel: UserOrderViewModel = viewModel(),
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel = viewModel(),
-    windowInfo: WindowInfo
+    windowInfo: WindowInfo,
+    navViewModel: NavViewModel = viewModel()
 
 ) {
-    val hasNavigated = rememberSaveable { mutableStateOf(false) }
+
     val authState = authViewModel.authState.observeAsState()
 
     val role = authViewModel.role.observeAsState()
@@ -60,31 +59,31 @@ fun Navigate(
 
     LaunchedEffect(authState.value) {
 
-            when (authState.value) {
-                    is AuthState.Authenticated -> {
-                        if(!hasNavigated.value) {
-                        val destination = when (role.value) {
-                            "T" -> Navigation.TechnicianHome.name
-                            "U" -> Navigation.UserHome.name
-                            else -> Navigation.Login.name
-                        }
-
-                        navController.navigate(destination) {
-                            popUpTo(0) { inclusive = true } // clear all previous screens
-                        }
-                        hasNavigated.value = true
+        when (authState.value) {
+            is AuthState.Authenticated -> {
+                if (!navViewModel.hasNavigated) {
+                    val destination = when (role.value) {
+                        "T" -> Navigation.TechnicianHome.name
+                        "U" -> Navigation.UserHome.name
+                        else -> Navigation.Login.name
                     }
-                }
 
-
-                is AuthState.Unauthenticated -> {
-                    hasNavigated.value = false
-                    navController.navigate(Navigation.Login.name) {
+                    navController.navigate(destination) {
                         popUpTo(0) { inclusive = true } // clear all previous screens
                     }
+                    navViewModel.updateHasNavigated(true)
                 }
+            }
 
-                else -> Unit // Loading or null
+
+            is AuthState.Unauthenticated -> {
+                navViewModel.updateHasNavigated(false)
+                navController.navigate(Navigation.Login.name) {
+                    popUpTo(0) { inclusive = true } // clear all previous screens
+                }
+            }
+
+            else -> Unit // Loading or null
 
         }
     }
@@ -122,7 +121,7 @@ fun Navigate(
         }
 
         composable(route = Navigation.TechnicianHome.name) {
-           TechnicianHomeUI(windowInfo = windowInfo)
+            TechnicianHomeUI(windowInfo = windowInfo)
         }
 
         composable(route = Navigation.TechnicianHistory.name) {

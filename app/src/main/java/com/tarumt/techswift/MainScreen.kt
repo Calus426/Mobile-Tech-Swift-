@@ -1,6 +1,7 @@
 package com.tarumt.techswift
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,12 +43,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -115,11 +120,11 @@ fun MainScreen(
 
 
 
-
     if (authState.value == null || role.value == null) {
         return
     } else {
         if (showElement) {
+            val navViewModel : NavViewModel = viewModel()
             val profileViewModel: ProfileViewModel = viewModel()
             val uiState = profileViewModel.uiState.collectAsState()
             ModalNavigationDrawer(
@@ -186,7 +191,8 @@ fun MainScreen(
                                 .zIndex(1f),
                             authViewModel = authViewModel,
                             profileViewModel = profileViewModel,
-                            windowInfo = windowInfo
+                            windowInfo = windowInfo,
+                            navViewModel = navViewModel
                         )
 
                     }
@@ -217,7 +223,8 @@ fun MainScreen(
                                 .zIndex(1f),
                             authViewModel = authViewModel,
                             profileViewModel = profileViewModel,
-                            windowInfo = windowInfo
+                            windowInfo = windowInfo,
+                            navViewModel = navViewModel
                         )
 
                     }
@@ -345,8 +352,8 @@ private fun BottomNavigationBar(
                                 navController.popBackStack()
                             } else {
                                 navController.navigate(navItem.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                                    popUpTo(navItem.route) {
+                                        inclusive = true
                                     }
                                     launchSingleTop = true
                                     restoreState = true
@@ -471,7 +478,7 @@ fun DrawerContent(
                     }
 
                     navController.navigate(destination) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(destination) { inclusive = true }
                         launchSingleTop = true
                     }
                     closeDrawer()
@@ -484,6 +491,43 @@ fun DrawerContent(
             )
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            if(role == "U"){
+                NavigationDrawerItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.order_fill),
+                            contentDescription = stringResource(R.string.order),
+                            modifier = Modifier.size(40.dp),
+                            colorFilter = ColorFilter.tint(Color.White)
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.order),
+                            color = Color.White,
+                            fontSize = 25.sp
+                        )
+                    },
+                    selected = false,
+                    onClick = {
+                        navController.navigate(Navigation.UserOrder.name) {
+                            popUpTo(Navigation.UserOrder.name) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                        closeDrawer()
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        selectedContainerColor = Color.Transparent,  // No background on selection
+                        unselectedContainerColor = Color.Transparent // No background when not selected
+                    ),
+                    shape = RoundedCornerShape(0.dp),// Remove rounded corners
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+            }
         }
 
         NavigationDrawerItem(
@@ -504,7 +548,12 @@ fun DrawerContent(
             },
             selected = false,
             onClick = {
-                navController.navigate(Navigation.Profile.name)
+                navController.navigate(Navigation.Profile.name){
+                    popUpTo(Navigation.Profile.name){
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
                 closeDrawer()
             },
             colors = NavigationDrawerItemDefaults.colors(
@@ -539,8 +588,8 @@ fun DrawerContent(
                     else -> Navigation.Login.name
                 }
 
-                navController.navigate(destination) {
-                    popUpTo(0) { inclusive = true }
+                navController.navigate(destination){
+                    popUpTo(destination) { inclusive = true }
                     launchSingleTop = true
                 }
                 closeDrawer()
