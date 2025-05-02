@@ -60,7 +60,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -131,13 +130,19 @@ fun UserOrderUI(
 
                     if (uiState.statusScreen.equals("inProgress")) {
                         items(uiState.inProgressList) { inProgress ->
-                            val service = serviceList[inProgress.serviceId]
-                            ServiceCard(inProgress, service, viewModel, uiState, context)
+                            val service = serviceList[inProgress.request.serviceId]
+                            ServiceCard(inProgress.request, service, viewModel, uiState, context,inProgress.technicianName,inProgress.technicianPhone)
                         }
                     } else {
                         items(uiState.pendingList) { pending ->
                             val service = serviceList[pending.serviceId]
-                            ServiceCard(pending, service, viewModel, uiState, context)
+                            ServiceCard(
+                                pending,
+                                service,
+                                viewModel,
+                                uiState,
+                                context
+                            )
                         }
                     }
 
@@ -160,7 +165,9 @@ fun ServiceCard(
     service: Service,
     viewModel: UserOrderViewModel,
     uiState: UserOrderUiState,
-    context: Context
+    context: Context,
+    technicianName: String = "",
+    technicianPhone: String = ""
 ) {
     val orderEvents: MutableList<OrderEvent> = mutableListOf()
 
@@ -312,11 +319,10 @@ fun ServiceCard(
 
 
                     if (request.pending == false) {
-                        viewModel.getTechnicianDetails(request.technicianId)
 
 
                         Text(
-                            text = "Order accepted by Technician ${uiState.technicianName}",
+                            text = "Order accepted by Technician $technicianName",
                             color = Color(0xFFC6C6C6),
                             fontFamily = FontFamily(
                                 Font(
@@ -341,7 +347,7 @@ fun ServiceCard(
                                     .clip(CircleShape)
                                     .background(Color(0xFFD9D9D9)) // Green background
                                     .clickable {
-                                        PhoneCallIntent(uiState.technicianPhone, context)
+                                        PhoneCallIntent(technicianPhone, context)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {

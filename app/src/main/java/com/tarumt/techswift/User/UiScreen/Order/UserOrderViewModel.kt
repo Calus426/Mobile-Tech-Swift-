@@ -22,6 +22,9 @@ class UserOrderViewModel : ViewModel() {
 
     private var currentUserId: String? = null
 
+    private var technicianName : String = ""
+    private var technicianPhone : String = ""
+
     init {
         setupAuthListener()
     }
@@ -121,10 +124,31 @@ class UserOrderViewModel : ViewModel() {
 
                     if (querySnapshot != null && !querySnapshot.isEmpty) {
                         val inProgressRequest = querySnapshot.toObjects(Request::class.java)
-                        updateInProgressRequestList(inProgressRequest)
+
+                        // For each request, fetch technician info and create DTO
+                        val dtoList = mutableListOf<RequestDTO>()
+                        val totalRequests = inProgressRequest.size
+                        var processedCount = 0
+
+                        inProgressRequest.forEach { request ->
+                            Firebase.firestore.collection("users")
+                                .document(request.technicianId)
+                                .get()
+                                .addOnSuccessListener { document ->
+                                    val technicianName = document.getString("name") ?: ""
+                                    val technicianPhone = document.getString("phone") ?: ""
+                                    dtoList.add(RequestDTO(request, technicianName, technicianPhone))
+                                }
+                                .addOnCompleteListener {
+                                    processedCount++
+                                    if (processedCount == totalRequests) {
+                                        updateInProgressRequestList(dtoList)
+                                    }
+                                }
+                        }
                     } else {
 
-                        updateInProgressRequestList(emptyList<Request>().toMutableList())
+                        updateInProgressRequestList(emptyList<RequestDTO>().toMutableList())
                     }
 
                 }
@@ -139,7 +163,7 @@ class UserOrderViewModel : ViewModel() {
 
     }
 
-    fun updateInProgressRequestList(inProgressRequest: MutableList<Request>) {
+    fun updateInProgressRequestList(inProgressRequest: MutableList<RequestDTO>) {
         _uiState.update { currentState ->
             currentState.copy(inProgressList = inProgressRequest.toMutableList())
         }
@@ -168,12 +192,14 @@ class UserOrderViewModel : ViewModel() {
                 if (document.exists()) {
                     val user = document.toObject(User::class.java)
                     user?.let {
-                        _uiState.update { currentState ->
-                            currentState.copy(
-                                technicianName = it.name,
-                                technicianPhone = it.phone
-                            )
-                        }
+//                        _uiState.update { currentState ->
+//                            currentState.copy(
+//                                technicianName = it.name,
+//                                technicianPhone = it.phone
+//                            )
+//                        }
+                        technicianName = it.name
+                        technicianPhone = it.phone
 
                     }
                 } else {
@@ -183,6 +209,12 @@ class UserOrderViewModel : ViewModel() {
             }.addOnFailureListener { exception ->
                 Log.e("Firestore", "Failed to fetch user", exception)
             }
+    }
+    fun getTechnicianName() : String{
+        return technicianName
+    }
+    fun getTechnicianPhone() : String{
+        return technicianPhone
     }
 }
 

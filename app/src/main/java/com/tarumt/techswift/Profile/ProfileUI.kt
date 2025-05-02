@@ -1,17 +1,31 @@
 package com.tarumt.techswift.Profile
 
-import androidx.compose.foundation.Image
+import android.Manifest
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -36,9 +51,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -53,8 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -74,17 +88,27 @@ import kotlinx.coroutines.flow.debounce
 fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     val uiState = profileViewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var isLoading by remember { mutableStateOf(true) }
 
+    var showLoading by remember { mutableStateOf(false) }
 
-    val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(context)
-            .data(uiState.value.oriProfile.profileAvatar)
-            .crossfade(true)
-            .build(),
-        placeholder = painterResource(R.drawable.default_avatar2),
-        error = painterResource(R.drawable.default_avatar2)
-    )
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            profileViewModel.updateProfileImage(it)
+        }
+    }
+
+    // Permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, launch image picker
+            imagePickerLauncher.launch("image/*")
+        }
+    }
+
 
 
     LaunchedEffect(Unit) {
@@ -95,26 +119,18 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
             }
     }
 
-   LaunchedEffect(painter.state){
-       when(painter.state){
-           is AsyncImagePainter.State.Success -> isLoading = false
-           is AsyncImagePainter.State.Error -> isLoading = false
-           else -> Unit
-       }
-   }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-
-        //Check if the image loaded , if not the show loading
-
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-        ) {
-            if (!isLoading || uiState.value.oriProfile.profileAvatar.isEmpty()) {
+        if (!showLoading) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Box {
                     Box(
                         modifier = Modifier
@@ -123,17 +139,26 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                             .background(GreenBackground)
                     )
 
-                    Image(
-                        painter = painter,
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(
+                                uiState.value.selectedImageUri
+                                    ?: uiState.value.oriProfile.profileAvatar
+                            )
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "Profile Image",
                         modifier = Modifier
                             .size(120.dp)
-                            .align(Alignment.TopCenter)
                             .clip(CircleShape)
-                            .border(4.dp, Color.White, CircleShape),
-                        contentScale = ContentScale.Crop
+                            .align(Alignment.TopCenter)
+                            .border(4.dp, Color.White, CircleShape)
+                            .clickable { permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE) },
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.default_avatar2),
+                        error = painterResource(R.drawable.default_avatar2)
                     )
-
                 }
 
 
@@ -212,7 +237,10 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
 
                         Button(
                             onClick = {
-                                profileViewModel.updateProfileDetails(context)
+                                showLoading = true
+                                profileViewModel.updateProfileDetails(context) {
+                                    showLoading = false
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -238,36 +266,41 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
 
                 }
 
-            } else {
 
-                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
-                val progress by animateLottieCompositionAsState(
-                    composition=composition,
-                    iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
-                    speed = 1.3f
-                )
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painter,
-                        contentDescription = "Profile Image",
-                        modifier = Modifier
-                            .alpha(0f),
-                    )
+            }
+        } else {
 
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
+                speed = 1.3f
+            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
                     LottieAnimation(
                         composition = composition,
                         progress = { progress },
                         modifier = Modifier.size(180.dp)
                     )
+
+                    BouncingSavingText()
                 }
+
             }
+
         }
 
 
     }
+
+
 }
 
 
@@ -451,9 +484,11 @@ fun AddressTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSelection(fieldName: String, onValueChange: (String) -> Unit,gender:String="") {
+fun DropdownSelection(fieldName: String, onValueChange: (String) -> Unit, gender: String = "") {
 
-    var selectedText by remember { mutableStateOf(genderList.find { it == gender } ?: genderList.first())  }
+    var selectedText by remember {
+        mutableStateOf(genderList.find { it == gender } ?: genderList.first())
+    }
     var isExpanded by remember { mutableStateOf(false) }
 
     Column(
@@ -524,7 +559,8 @@ private fun ProfileTextField(fieldName: String, value: String, onValueChange: (S
     val font = GoogleFont("Poppins")
     Column(
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier.padding(bottom = 3.dp)
+        modifier = Modifier
+            .padding(bottom = 3.dp)
             .fillMaxWidth()
     ) {
         Text(
@@ -555,6 +591,48 @@ private fun ProfileTextField(fieldName: String, value: String, onValueChange: (S
             shape = RoundedCornerShape(12.dp),
             textStyle = TextStyle(fontSize = 12.sp)
         )
+    }
+}
+
+@Composable
+fun BouncingSavingText() {
+    val dotCount = 3
+    val infiniteTransition = rememberInfiniteTransition(label = "BouncingDots")
+
+    val scales = List(dotCount) { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.5f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 600,
+                    delayMillis = index * 200,
+                    easing = FastOutSlowInEasing
+                ),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "Dot$index"
+        )
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Text("Saving Profile", style = MaterialTheme.typography.bodyLarge, fontSize = 21.sp)
+        Spacer (modifier = Modifier.width(6.dp))
+        Row {
+            repeat(dotCount) { i ->
+                Text(
+                    text = ".",
+                    fontSize = 26.sp,
+                    modifier = Modifier
+                        .offset(y = (-8).dp) // Raises the dots slightly
+                        .graphicsLayer {
+                            scaleX = scales[i].value
+                            scaleY = scales[i].value
+                        }
+                        .padding(horizontal = 2.dp)
+                )
+            }
+        }
     }
 }
 
