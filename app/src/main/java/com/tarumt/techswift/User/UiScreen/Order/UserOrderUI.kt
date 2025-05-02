@@ -489,7 +489,7 @@ fun StatusSelection(
 
                 ) {
                 Text(
-                    text = "In progress",
+                    text = "On Going",
                     color =
                     if (currentStatus == "inProgress") Color.Black
                     else Color.Black.copy(alpha = 0.3f),
