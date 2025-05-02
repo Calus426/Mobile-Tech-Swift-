@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.Button
@@ -46,6 +48,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,7 +73,7 @@ fun TechnicianHistoryUi(
     var selectedTab by remember { mutableStateOf("inProgress") }
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Request?>(null) }
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.fetchHistory()
     }
@@ -88,9 +92,11 @@ fun TechnicianHistoryUi(
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Column(Modifier
-                .fillMaxSize()
-                .padding(16.dp)) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -127,7 +133,16 @@ fun TechnicianHistoryUi(
                                 },
                                 onClick = {
                                     selectedTask = task
-                                    showDialog = true
+                                    showDialog = true // Always show the dialog
+                                },
+                                onNavigateClick = {
+                                    task.userId?.let {
+                                        viewModel.getUserAddress(
+                                            it,
+                                            context
+                                        )
+                                    }
+
                                 }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
@@ -152,32 +167,39 @@ fun HistoryServiceCard(
     task: Request,
     isInProgress: Boolean = false,
     onDoneClick: (() -> Unit)? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onNavigateClick: () -> Unit = {}
 ) {
     val serviceList = ServiceDataSource().loadServices()
+
     Card(
         shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .height(if (isInProgress) 160.dp else 120.dp)
+            .height(160.dp)
     ) {
-        Column(Modifier
-            .fillMaxSize()
-            .padding(16.dp)) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .fillMaxHeight(0.6f)
+                        .fillMaxWidth(0.3f)
                         .background(Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Build,
-                        contentDescription = null,
-                        tint = Color(0xFF2D2E2C),
-                        modifier = Modifier.size(24.dp)
+                    Image(
+                        painter = painterResource(serviceList[task.serviceId].image),
+                        contentDescription = stringResource(id = serviceList[task.serviceId].label),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(10.dp)
+
                     )
                 }
 
@@ -208,13 +230,26 @@ fun HistoryServiceCard(
 
             if (isInProgress && onDoneClick != null) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = onDoneClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B61FF)),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.align(Alignment.End)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    Text(text = "Done", color = Color.White)
+                    Button(
+                        onClick = { onNavigateClick() }, // Trigger the navigation
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA5)),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text(text = "Google Map", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = onDoneClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B61FF)),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(text = "Done", color = Color.White)
+                    }
                 }
             }
         }
@@ -247,7 +282,8 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit, windowInfo: WindowI
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -261,21 +297,6 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit, windowInfo: WindowI
                     "Date: ${df.format(it)}\nTime: ${tf.format(it)}"
                 } ?: "N/A"
 
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(20.dp))
-//                        .padding(16.dp)
-//                ) {
-//                    Column {
-//                        TimelineStep("Request Posted", format(task.createdTime), isFirst = true)
-//                        TimelineStep("Request Accepted", format(task.acceptedTime))
-//                        TimelineStep("Request Finished", format(task.finishedTime), isLast = true)
-//                    }
-//                }
-//                TimelineStep("Request Posted", format(task.createdTime), isFirst = true)
-//                TimelineStep("Request Accepted", format(task.acceptedTime))
-//                TimelineStep("Request Finished", format(task.finishedTime), isLast = true)
 
                 val timeLineList: MutableList<TimeLineInfo> = mutableListOf()
                 timeLineList.add(TimeLineInfo("Request Posted", format(task.createdTime)))
@@ -321,7 +342,7 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit, windowInfo: WindowI
 
 @Composable
 fun TimelineStep(
-  timeLine :  List<TimeLineInfo>
+    timeLine: List<TimeLineInfo>
 ) {
 //    Row(modifier = Modifier.fillMaxWidth()) {
 //        // Dot and line column
@@ -360,7 +381,7 @@ fun TimelineStep(
 //        }
 //    }
 
-   val titleHeights = remember { mutableStateMapOf<Int, Float>() }
+    val titleHeights = remember { mutableStateMapOf<Int, Float>() }
 
     Box(
         modifier = Modifier
@@ -370,8 +391,9 @@ fun TimelineStep(
     ) {
         Row {
             // Vertical Line with Dots
-            Canvas(modifier = Modifier
-                .width(20.dp)
+            Canvas(
+                modifier = Modifier
+                    .width(20.dp)
             ) {
                 val dotRadius = 4.dp.toPx()
                 val lineX = size.width / 2
@@ -418,7 +440,7 @@ fun TimelineStep(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
-                        Text(text = "Date: ${event.timeInfo}",fontSize = 12.sp)
+                        Text(text = "Date: ${event.timeInfo}", fontSize = 12.sp)
                     }
                 }
             }
@@ -428,5 +450,5 @@ fun TimelineStep(
 
 data class TimeLineInfo(
     val title: String,
-    val timeInfo : String
+    val timeInfo: String
 )

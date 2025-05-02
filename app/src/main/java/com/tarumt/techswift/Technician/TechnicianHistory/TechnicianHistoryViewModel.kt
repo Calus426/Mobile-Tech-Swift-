@@ -1,8 +1,13 @@
 package com.tarumt.techswift.Technician.TechnicianHistory
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tarumt.techswift.Model.User
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Technician.TechnicianUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +90,31 @@ class TechnicianHistoryViewModel : ViewModel() {
                     errorMessage = e.message ?: "Error updating task"
                 )
             }
+    }
+    fun getUserAddress(userId: String, context: Context) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    val address = user?.fullAddress
+                    if (!address.isNullOrEmpty()) {
+                        openMapForNavigation(context, address)
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Firestore", "Failed to fetch user address")
+            }
+    }
+
+    private fun openMapForNavigation(context: Context, address: String) {
+        val gmmIntentUri = Uri.parse("geo:0,0?q=${Uri.encode(address)}")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+        val chooser = Intent.createChooser(mapIntent, "Open with")
+        chooser.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(chooser)
     }
 
 

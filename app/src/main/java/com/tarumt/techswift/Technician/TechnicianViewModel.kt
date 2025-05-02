@@ -20,6 +20,8 @@ class TechnicianViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TechnicianUiState())
     val uiState: StateFlow<TechnicianUiState> = _uiState.asStateFlow()
 
+    var fullAddress : String = ""
+        private set
     private val db = FirebaseFirestore.getInstance()
 
     init {
@@ -74,43 +76,10 @@ class TechnicianViewModel : ViewModel() {
             )
             .addOnSuccessListener {
                 fetchPendingTasks()
-                task.userId?.let { userId ->
-                    getUserAddress(userId, context)
-                } ?: Log.e("Firestore", "User ID is null, cannot fetch address")
+                Log.e("Firestore", "User ID is null, cannot fetch address")
             }
             .addOnFailureListener {
                 Log.e("Firestore", "Failed to accept task")
-            }
-    }
-
-    private fun openMapForNavigation(context: Context, address: String) {
-        val gmmIntentUri = Uri.parse("geo:0,0?q=${Uri.encode(address)}")
-        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-
-        val chooser = Intent.createChooser(mapIntent, "Open with")
-        chooser.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.startActivity(chooser)
-    }
-
-    fun getUserAddress(userId: String, context: Context) {
-        db.collection("users")
-            .document(userId)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val user = document.toObject(User::class.java)
-                    val address = user?.fullAddress
-                    if (!address.isNullOrEmpty()) {
-                        openMapForNavigation(context, address)
-                    } else {
-                        Log.e("MapError", "User address is null or empty")
-                    }
-                } else {
-                    Log.e("Firestore", "User document does not exist")
-                }
-            }
-            .addOnFailureListener {
-                Log.e("Firestore", "Failed to fetch user address")
             }
     }
     fun onTaskSelected(task: Request) {
@@ -119,5 +88,28 @@ class TechnicianViewModel : ViewModel() {
 
     fun dismissDialog() {
         _uiState.update { it.copy(showDialog = false, selectedTask = null) }
+    }
+    fun getUserAddress(userId: String) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    val fullAddr = user?.fullAddress ?: ""
+                    val addr1 = user?.address1 ?: ""
+                    if (fullAddr.isNotEmpty()) {
+                        val info = UserAddressInfo(fullAddress = fullAddr, address1 = addr1)
+                        _uiState.update { current ->
+                            current.copy(
+                                userAddresses = current.userAddresses + (userId to info)
+                            )
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Firestore", "Failed to fetch user address")
+            }
     }
 }

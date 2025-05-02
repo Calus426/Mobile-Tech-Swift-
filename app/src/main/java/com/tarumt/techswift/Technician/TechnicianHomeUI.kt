@@ -40,7 +40,10 @@ import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Timestamp
@@ -105,12 +108,24 @@ fun TechnicianHomeUI(
                                 .padding(14.dp)
                         ) {
                             items(uiState.pendingList) { task ->
+                                val addressInfo = uiState.userAddresses[task.userId]
+                                val fullAddress = addressInfo?.fullAddress ?: "Fetching..."
+                                val address1 = addressInfo?.address1 ?: ""
+
+                                LaunchedEffect(task.userId) {
+                                    if (!uiState.userAddresses.containsKey(task.userId)) {
+                                        viewModel.getUserAddress(task.userId!!)
+                                    }
+                                }
+
                                 TaskCard(
                                     serviceName = stringResource(serviceList[task.serviceId].label),
                                     price = task.offeredPrice.toString(),
                                     onAccept = { viewModel.acceptTask(task, context) },
-                                    onClick = { viewModel.onTaskSelected(task) }
+                                    onClick = { viewModel.onTaskSelected(task) },
+                                    address1=address1
                                 )
+
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
                         }
@@ -122,19 +137,22 @@ fun TechnicianHomeUI(
         //  Custom Dialog
         if (uiState.showDialog && uiState.selectedTask != null) {
             Dialog(onDismissRequest = { viewModel.dismissDialog() }) {
-                Box(
+                Card(
+                    shape = RoundedCornerShape(20.dp),
                     modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .fillMaxHeight(0.6f)
-                        .background(Color.White, shape = RoundedCornerShape(16.dp))
-                        .padding(20.dp)
+                        .fillMaxWidth(if (windowInfo.screenWidthInfo is WindowInfo.WindowType.Expanded) 0.7f else 0.9f)
+                        .padding(16.dp)
                 ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.padding(20.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val task = uiState.selectedTask!!
                         val painter = rememberAsyncImagePainter(model = task.pictureDescription)
+                        val addressInfo = uiState.userAddresses[task.userId]
+                        val fullAddress = addressInfo?.fullAddress ?: "Fetching..."
+                        val address1 = addressInfo?.address1 ?: "Fetching..."
 
 
 
@@ -183,6 +201,8 @@ fun TechnicianHomeUI(
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))
+                        Text(text = "Address: $fullAddress", fontSize = 16.sp)
+
 
                         // Image Preview
                         Image(
@@ -214,13 +234,13 @@ fun TechnicianHomeUI(
 }
 
 @Composable
-fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: () -> Unit) {
+fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: () -> Unit, address1: String ) {
     Card(
         shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(140.dp)
             .clickable { onClick() },
     ) {
         Box(
@@ -233,7 +253,9 @@ fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: 
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.weight(0.6f)
+                ){
                     Text(
                         text = serviceName,
                         color = Color.White,
@@ -242,6 +264,12 @@ fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: 
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = price,
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text =address1,
                         color = Color.White,
                         fontSize = 14.sp
                     )
