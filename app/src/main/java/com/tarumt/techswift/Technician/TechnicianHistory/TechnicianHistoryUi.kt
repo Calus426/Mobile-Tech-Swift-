@@ -1,6 +1,9 @@
 package com.tarumt.techswift.Technician.TechnicianHistory
 
+import android.content.Context
+import android.content.Intent
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,12 +29,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -118,7 +124,9 @@ fun TechnicianHistoryUi(
                 } else if (uiState.errorMessage != null) {
                     Text(text = "Error: ${uiState.errorMessage}", color = Color.Red)
                 } else {
-                    LazyColumn {
+                    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp) // This adds spacing between items
+                    ) {
                         val tasks = if (selectedTab == "inProgress") {
                             uiState.inProgressTasks
                         } else {
@@ -133,19 +141,17 @@ fun TechnicianHistoryUi(
                                 },
                                 onClick = {
                                     selectedTask = task
-                                    showDialog = true // Always show the dialog
+                                    showDialog = true
                                 },
                                 onNavigateClick = {
-                                    task.userId?.let {
-                                        viewModel.getUserAddress(
-                                            it,
-                                            context
-                                        )
-                                    }
-
-                                }
+                                    viewModel.getUserAddress(task.userId!!, context)
+                                },
+                                onCallClick = {
+                                    viewModel.getUserPhone(task.userId!!, onPhoneFetched = { phone ->
+                                        PhoneCallIntent(phone, context)
+                                    })
+                                },
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
@@ -168,7 +174,8 @@ fun HistoryServiceCard(
     isInProgress: Boolean = false,
     onDoneClick: (() -> Unit)? = null,
     onClick: () -> Unit = {},
-    onNavigateClick: () -> Unit = {}
+    onNavigateClick: () -> Unit = {},
+    onCallClick: () -> Unit = {},
 ) {
     val serviceList = ServiceDataSource().loadServices()
 
@@ -177,7 +184,6 @@ fun HistoryServiceCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
             .height(160.dp)
     ) {
         Column(
@@ -185,7 +191,8 @@ fun HistoryServiceCard(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onClick() }) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.6f)
@@ -232,24 +239,41 @@ fun HistoryServiceCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+
+                    IconButton(
+                        onClick = { onCallClick()},
+                        modifier = Modifier
+                            .size(48.dp) // Adjust size for touch target
+                            .background(Color.White, shape = CircleShape) // Optional background
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = "Call User",
+                            tint = Color(0xFF008000),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                     Button(
-                        onClick = { onNavigateClick() }, // Trigger the navigation
+                        onClick = { onNavigateClick() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA5)),
                         shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.weight(1f).padding(start = 4.dp, end = 4.dp)
                     ) {
-                        Text(text = "Google Map", color = Color.White)
+                        Text(text = "Map", color = Color.White)
                     }
 
                     Button(
-                        onClick = onDoneClick,
+                        onClick = { onDoneClick() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B61FF)),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.weight(1f).padding(start = 4.dp)
                     ) {
-                        Text(text = "Done", color = Color.White)
+                        Text(text = "Done", color = Color.White, fontSize = 12.sp)
                     }
+
+
                 }
             }
         }
@@ -344,42 +368,7 @@ fun TaskTimelineDialog(task: Request, onDismiss: () -> Unit, windowInfo: WindowI
 fun TimelineStep(
     timeLine: List<TimeLineInfo>
 ) {
-//    Row(modifier = Modifier.fillMaxWidth()) {
-//        // Dot and line column
-//        Column(
-//            modifier = Modifier
-//                .padding(end = 12.dp)
-//                .width(24.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            // Vertical line (drawn first, behind the dot)
-//            if (!isLast) {
-//                Box(
-//                    modifier = Modifier
-//                        .width(2.dp)
-//                        .height(40.dp)
-//                        .background(Color.Black)
-//                )
-//            } else {
-//                // Add empty space for last item to maintain alignment
-//                Spacer(modifier = Modifier.height(40.dp))
-//            }
-//
-//            // Dot (drawn on top of the line)
-//            Box(
-//                modifier = Modifier
-//                    .size(10.dp)
-//                    .background(Color.Black, shape = CircleShape)
-//                    .offset(y = (-20).dp) // This moves the dot up to center on the line
-//            )
-//        }
-//
-//        // Event text
-//        Column(modifier = Modifier.padding(bottom = 12.dp)) {
-//            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-//            Text(timeInfo, fontSize = 13.sp, color = Color.DarkGray)
-//        }
-//    }
+
 
     val titleHeights = remember { mutableStateMapOf<Int, Float>() }
 
@@ -446,6 +435,13 @@ fun TimelineStep(
             }
         }
     }
+}
+fun PhoneCallIntent(phoneNo: String, context: Context) {
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = Uri.parse("tel:$phoneNo")
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    }
+    context.startActivity(intent)
 }
 
 data class TimeLineInfo(

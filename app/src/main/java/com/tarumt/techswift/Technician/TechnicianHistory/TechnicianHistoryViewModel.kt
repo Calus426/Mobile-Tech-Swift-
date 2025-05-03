@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,6 +20,8 @@ class TechnicianHistoryViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(TechnicianHistoryUiState())
     val uiState: StateFlow<TechnicianHistoryUiState> = _uiState.asStateFlow()
+    private val _userPhones = mutableStateMapOf<String, String>()
+    val userPhones: Map<String, String> get() = _userPhones
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -32,6 +35,7 @@ class TechnicianHistoryViewModel : ViewModel() {
             .addOnSuccessListener { result ->
                 val inProgress = mutableListOf<Request>()
                 val finished = mutableListOf<Request>()
+
 
                 result.forEach { doc ->
                     val task = doc.toObject(Request::class.java)
@@ -91,6 +95,30 @@ class TechnicianHistoryViewModel : ViewModel() {
                 )
             }
     }
+    fun getUserPhone(userId: String, onPhoneFetched: (String) -> Unit) {
+        if (_userPhones.containsKey(userId)) {
+            onPhoneFetched(_userPhones[userId]!!)
+            return
+        }
+
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    val phone = user?.phone
+                    if (!phone.isNullOrEmpty()) {
+                        _userPhones[userId] = phone
+                        onPhoneFetched(phone)
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Firestore", "Failed to fetch user phone")
+            }
+    }
+
     fun getUserAddress(userId: String, context: Context) {
         db.collection("users")
             .document(userId)
