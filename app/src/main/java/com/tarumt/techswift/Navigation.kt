@@ -146,12 +146,13 @@ fun Navigate(
 
         composable(route = Navigation.UserOrder.name) {
             UserOrderUI(
-                userOrderViewModel
+                userOrderViewModel,
+                windowInfo = windowInfo
             )
         }
 
         composable(route = Navigation.UserHistory.name) {
-            UserHistoryUI()
+            UserHistoryUI(windowInfo = windowInfo)
         }
 
         composable(route = Navigation.Profile.name) {

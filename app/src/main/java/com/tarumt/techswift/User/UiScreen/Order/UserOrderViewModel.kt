@@ -183,38 +183,22 @@ class UserOrderViewModel : ViewModel() {
     }
 
 
-    fun getTechnicianDetails(technicianId: String){
-
-        Firebase.firestore.collection("users")
-            .document(technicianId)
+    fun cancelRequest(id: Int) {
+        Firebase.firestore.collection("requests")
+            .whereEqualTo("id", id)
+            .limit(1)
             .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val user = document.toObject(User::class.java)
-                    user?.let {
-//                        _uiState.update { currentState ->
-//                            currentState.copy(
-//                                technicianName = it.name,
-//                                technicianPhone = it.phone
-//                            )
-//                        }
-                        technicianName = it.name
-                        technicianPhone = it.phone
+            .addOnSuccessListener { snapshot ->
+            snapshot.documents.firstOrNull()?.reference?.update(
+                "pending", false,
+                "status", "canceled"
+            )
+                Log.d("Firestore", "Canceled task")
 
-                    }
-                } else {
-                    Log.d("Firestore", "No such document")
-                }
-
-            }.addOnFailureListener { exception ->
-                Log.e("Firestore", "Failed to fetch user", exception)
             }
-    }
-    fun getTechnicianName() : String{
-        return technicianName
-    }
-    fun getTechnicianPhone() : String{
-        return technicianPhone
+            .addOnFailureListener {
+                Log.e("Firestore", "Failed to accept task")
+            }
     }
 }
 

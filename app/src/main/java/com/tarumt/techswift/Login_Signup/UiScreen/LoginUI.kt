@@ -98,7 +98,7 @@ fun LoginUI(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .scale(if(windowInfo.screenWidthInfo != WindowInfo.WindowType.Compact)1.5f else 1f),
+                    .scale(if(windowInfo.screenWidthInfo != WindowInfo.WindowType.Compact && windowInfo.screenHeightInfo != WindowInfo.WindowType.Compact)1.5f else 1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ){

@@ -1,7 +1,10 @@
 package com.tarumt.techswift.Profile
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -67,6 +70,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -88,6 +92,8 @@ import kotlinx.coroutines.flow.debounce
 fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     val uiState = profileViewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    val permission = getImagePermission()
 
     var showLoading by remember { mutableStateOf(false) }
 
@@ -154,7 +160,9 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                             .clip(CircleShape)
                             .align(Alignment.TopCenter)
                             .border(4.dp, Color.White, CircleShape)
-                            .clickable { permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE) },
+                            .clickable {
+                                permissionLauncher.launch(permission)
+                            },
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.default_avatar2),
                         error = painterResource(R.drawable.default_avatar2)
@@ -270,30 +278,7 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
             }
         } else {
 
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
-            val progress by animateLottieCompositionAsState(
-                composition = composition,
-                iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
-                speed = 1.3f
-            )
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { progress },
-                        modifier = Modifier.size(180.dp)
-                    )
-
-                    BouncingSavingText()
-                }
-
-            }
+            LoadingSreenUI()
 
         }
 
@@ -301,6 +286,37 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
     }
 
 
+}
+
+@Composable
+private fun LoadingSreenUI() {
+    BackHandler(enabled = true) {
+        // Do nothing - this will block the back button
+    }
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever, // <- LOOP FOREVER,
+        speed = 1.3f
+    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LottieAnimation(
+                composition = composition,
+                progress = { progress },
+                modifier = Modifier.size(180.dp)
+            )
+
+            BouncingSavingText()
+        }
+
+    }
 }
 
 
@@ -615,9 +631,12 @@ fun BouncingSavingText() {
         )
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
         Text("Saving Profile", style = MaterialTheme.typography.bodyLarge, fontSize = 21.sp)
-        Spacer (modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(6.dp))
         Row {
             repeat(dotCount) { i ->
                 Text(
@@ -635,6 +654,15 @@ fun BouncingSavingText() {
         }
     }
 }
+
+fun getImagePermission(): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES // Android 13+
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE // Legacy
+    }
+}
+
 
 @Preview
 @Composable

@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -77,6 +78,7 @@ dependencies {
     implementation(libs.accompanist.swiperefresh)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.lottie.compose) //lottie animation
+    implementation(libs.androidx.core.splashscreen)
 }
 
 secrets{

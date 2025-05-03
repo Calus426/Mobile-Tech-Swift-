@@ -3,6 +3,7 @@ accompanistSwiperefresh = "0.31.3-beta"
 agp = "8.8.2"
 appcompat = "1.4.1"
 coilCompose = "2.0.0"
+coreSplashscreen = "1.0.1"
 firebaseBom = "33.11.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
@@ -22,11 +23,13 @@ uiTextGoogleFonts = "1.7.8"
 uiTestAndroid = "1.7.8"
 firebaseAuthKtx = "23.2.0"
 runtimeLivedata = "1.7.8"
+composeMaterial = "1.4.1"
 
 [libraries]
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
@@ -54,6 +57,7 @@ firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage
 androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

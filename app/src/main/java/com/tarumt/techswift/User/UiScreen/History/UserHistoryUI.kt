@@ -59,10 +59,11 @@ import com.tarumt.techswift.Model.Service
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
 import com.tarumt.techswift.User.UiScreen.Order.OrderEvent
 import com.tarumt.techswift.User.UiScreen.Order.parseTimestamp
+import com.tarumt.techswift.WindowInfo
 import com.tarumt.techswift.ui.theme.provider
 
 @Composable
-fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel()) {
+fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(),windowInfo: WindowInfo) {
     val uiState by viewModel.uiState.collectAsState()
     val serviceList = remember { ServiceDataSource().loadServices() }
     val context = LocalContext.current
@@ -90,7 +91,7 @@ fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel()) {
                 LazyColumn {
                     items(uiState.finishedList) { finished ->
                         val service = serviceList[finished.serviceId]
-                        ServiceCard(finished, service, viewModel, uiState)
+                        ServiceCard(finished, service, viewModel, uiState,windowInfo)
                     }
                 }
             }
@@ -107,24 +108,22 @@ fun ServiceCard(
     service: Service,
     viewModel: UserHistoryViewModel,
     uiState: UserHistoryUiState,
+    windowInfo : WindowInfo
 ) {
     val orderEvents: MutableList<OrderEvent> = mutableListOf()
 
     if (request.createdTime != null) {
         val (date, time) = parseTimestamp(request.createdTime)
-        orderEvents.add(OrderEvent("Request Posted",date,time))
+        orderEvents.add(OrderEvent("Request Posted", date, time))
     }
     if (request.acceptedTime != null) {
         val (date, time) = parseTimestamp(request.acceptedTime)
-        orderEvents.add(OrderEvent("Request Accepted",date,time))
+        orderEvents.add(OrderEvent("Request Accepted", date, time))
     }
     if (request.finishedTime != null) {
         val (date, time) = parseTimestamp(request.finishedTime)
-        orderEvents.add(OrderEvent("Request Finished",date,time))
+        orderEvents.add(OrderEvent("Request Finished", date, time))
     }
-
-
-
 
 
     var showInfoBox by remember { mutableStateOf(false) }
@@ -133,8 +132,8 @@ fun ServiceCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
-                    .fillMaxHeight(0.54f)
-                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .fillMaxHeight(if(windowInfo.screenWidthInfo is WindowInfo.WindowType.Compact) 0.54f else 0.85f)
+                    .background(Color.White, shape = RoundedCornerShape(30.dp))
                     .padding(20.dp)
 
             ) {
@@ -161,17 +160,29 @@ fun ServiceCard(
 
                     Spacer(modifier = Modifier.height(10.dp))  // Adds space at the bottom
 
-                    Text(
-                        text = "Price: RM ${
-                            String.format(
-                                "%.2f",
-                                request.offeredPrice ?: 0.00
+                    Column(
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ){
+                            Text(
+                                text = "Price: RM ${
+                                    String.format(
+                                        "%.2f",
+                                        request.offeredPrice ?: 0.00
+                                    )
+                                }\n" +
+                                        "Text Description: ${request.textDescription}",
+                                color = Color.Black,
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily(
+                                    Font(
+                                        fontProvider = provider,
+                                        googleFont = GoogleFont("Inter"),
+                                        weight = FontWeight.Medium
+                                    )
+                                )
                             )
-                        }\n" +
-                                "Text Description: ${request.textDescription}",
-                        color = Color.Black,
-                        fontSize = 16.sp
-                    )
+                        }
+
                     Spacer(modifier = Modifier.height(10.dp))  // Adds space at the bottom
 
                     request.pictureDescription?.let { imageUrl ->
@@ -304,8 +315,9 @@ private fun TimeLine(orderEvents: List<OrderEvent>) {
     ) {
         Row {
             // Vertical Line with Dots
-            Canvas(modifier = Modifier
-                .width(20.dp)
+            Canvas(
+                modifier = Modifier
+                    .width(20.dp)
             ) {
                 val dotRadius = 4.dp.toPx()
                 val lineX = size.width / 2
@@ -352,8 +364,8 @@ private fun TimeLine(orderEvents: List<OrderEvent>) {
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
-                        Text(text = "Date: ${event.date}",fontSize = 12.sp)
-                        Text(text = "Time: ${event.time}",fontSize = 12.sp)
+                        Text(text = "Date: ${event.date}", fontSize = 12.sp)
+                        Text(text = "Time: ${event.time}", fontSize = 12.sp)
                     }
                 }
             }
