@@ -148,7 +148,8 @@ class SignUpViewModel : ViewModel() {
             )
         }
 
-        return !_uiState.value.textFieldError.all{it} //== error[0]&&error[1}&&...
+
+        return _uiState.value.textFieldError.all { !it } //check if all are true, all true, return true
     }
 
     //Fetch and Pop suggestion from PlacesAPI(autocomplete) when users type address
