@@ -17,3 +17,9 @@ data class RequestDTO(
     val technicianName: String = "",
     val technicianPhone: String = ""
 )
+
+data class OrderEvent(
+    val title: String,
+    val date: String,
+    val time: String
+)

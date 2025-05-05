@@ -33,6 +33,9 @@ class ServiceDetailsViewModel : ViewModel() {
     var count by mutableStateOf(0)
         private set
 
+    init{
+        loadCount()
+    }
 
     fun descriptionUpdate(description : String){
         userDescription = description
@@ -170,9 +173,6 @@ class ServiceDetailsViewModel : ViewModel() {
 
 
 
-    }
-    init{
-        loadCount()
     }
 
     //validate

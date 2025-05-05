@@ -1,7 +1,6 @@
 package com.tarumt.techswift.Profile
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -70,7 +69,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -140,7 +138,7 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                 Box {
                     Box(
                         modifier = Modifier
-                            .height(40.dp) // Use fixed height instead of percentage
+                            .height(40.dp)
                             .fillMaxWidth()
                             .background(GreenBackground)
                     )
@@ -269,7 +267,6 @@ fun ProfileUI(profileViewModel: ProfileViewModel = viewModel()) {
                         }
 
 
-                        // Add more profile content here
                     }
 
                 }
@@ -663,9 +660,3 @@ fun getImagePermission(): String {
     }
 }
 
-
-@Preview
-@Composable
-fun Preview() {
-    ProfileUI()
-}

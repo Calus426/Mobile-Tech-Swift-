@@ -405,6 +405,7 @@ class ProfileViewModel : ViewModel() {
         address = ""
         postcode = ""
         state = ""
+        profileAvatar = ""
 
         // Reset UI state
         _uiState.update { ProfileUiState() }

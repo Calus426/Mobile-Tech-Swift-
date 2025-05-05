@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -65,7 +64,7 @@ import com.tarumt.techswift.ui.theme.provider
 fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(), windowInfo: WindowInfo) {
     val uiState by viewModel.uiState.collectAsState()
     val serviceList = remember { ServiceDataSource().loadServices() }
-    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -89,8 +88,8 @@ fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(), windowInfo: Win
             ) {
                 LazyColumn {
                     items(uiState.finishedList) { finished ->
-                        val service = serviceList[finished.serviceId]
-                        ServiceCard(finished, service, viewModel, uiState,windowInfo)
+                        val service = serviceList[finished.request.serviceId]
+                        ServiceCard(finished.request, service,windowInfo,technicianName = finished.technicianName)
                     }
                 }
             }
@@ -105,9 +104,8 @@ fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(), windowInfo: Win
 fun ServiceCard(
     request: Request,
     service: Service,
-    viewModel: UserHistoryViewModel,
-    uiState: UserHistoryUiState,
-    windowInfo : WindowInfo
+    windowInfo : WindowInfo,
+    technicianName : String = ""
 ) {
     val orderEvents: MutableList<OrderEvent> = mutableListOf()
 
@@ -271,12 +269,10 @@ fun ServiceCard(
                     )
 
 
-                    if (request.pending == false) {
-                        viewModel.getTechnicianDetails(request.technicianId)
 
 
                         Text(
-                            text = "Order finished by Technician ${uiState.technicianName}",
+                            text = "Order finished by Technician ${technicianName}",
                             color = Color(0xFFC6C6C6),
                             fontFamily = FontFamily(
                                 Font(
@@ -289,7 +285,7 @@ fun ServiceCard(
                             lineHeight = 12.sp
                         )
 
-                    }
+
 
 
                 }

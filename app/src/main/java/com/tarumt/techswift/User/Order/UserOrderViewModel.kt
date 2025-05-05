@@ -21,9 +21,6 @@ class UserOrderViewModel : ViewModel() {
 
     private var currentUserId: String? = null
 
-    private var technicianName : String = ""
-    private var technicianPhone : String = ""
-
     init {
         setupAuthListener()
     }

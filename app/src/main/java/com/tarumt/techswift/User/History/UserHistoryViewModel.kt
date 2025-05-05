@@ -8,7 +8,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.tarumt.techswift.Model.Request
-import com.tarumt.techswift.Model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +57,7 @@ class UserHistoryViewModel : ViewModel() {
         _uiState.value = UserHistoryUiState()
     }
 
-    fun loadFinishedList() {
+    fun loadFinishedList() { //Load finished request
 
         currentUserId?.let { userId ->
             val db = Firebase.firestore
@@ -79,47 +78,41 @@ class UserHistoryViewModel : ViewModel() {
 
                     if (querySnapshot != null && !querySnapshot.isEmpty) {
                         val pendingRequests = querySnapshot.toObjects(Request::class.java)
-                        updateFinishedRequestList(pendingRequests)
-                    } else {
 
-                        updateFinishedRequestList(emptyList<Request>().toMutableList())
-                    }
+                        // For each request, fetch technician info and create DTO
+                        val dtoList = mutableListOf<RequestDTO>()
+                        val totalRequests = pendingRequests.size
+                        var processedCount = 0
 
-                }
-        }
-
-    }
-
-    fun updateFinishedRequestList(finishedList : MutableList<Request>){
-        _uiState.update { currentState ->
-            currentState.copy(
-                finishedList = finishedList
-            )
-        }
-    }
-
-    fun getTechnicianDetails(technicianId: String){
-
-        Firebase.firestore.collection("users")
-            .document(technicianId)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val user = document.toObject(User::class.java)
-                    user?.let {
-                        _uiState.update { currentState ->
-                            currentState.copy(
-                                technicianName = it.name,
-                            )
+                        pendingRequests.forEach { request ->
+                            Firebase.firestore.collection("users")
+                                .document(request.technicianId)
+                                .get()
+                                .addOnSuccessListener { document ->
+                                    val technicianName = document.getString("name") ?: ""
+                                    dtoList.add(RequestDTO(request, technicianName))
+                                }
+                                .addOnCompleteListener {
+                                    processedCount++
+                                    if (processedCount == totalRequests) {
+                                        updateFinishedRequestList(dtoList)
+                                    }
+                                }
                         }
-
+                    } else {
+                        updateFinishedRequestList(emptyList<RequestDTO>().toMutableList())
                     }
-                } else {
-                    Log.d("Firestore", "No such document")
-                }
 
-            }.addOnFailureListener { exception ->
-                Log.e("Firestore", "Failed to fetch user", exception)
-            }
+                }
+        }
+
     }
+    fun updateFinishedRequestList(finishedList: MutableList<RequestDTO>) {
+        _uiState.update { currentState ->
+            currentState.copy(finishedList = finishedList.toMutableList())
+        }
+
+    }
+
+
 }

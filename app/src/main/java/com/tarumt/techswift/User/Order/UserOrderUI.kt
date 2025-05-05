@@ -812,13 +812,6 @@ fun StatusSelection(
     }
 }
 
-data class OrderEvent(
-    val title: String,
-    val date: String,
-    val time: String
-)
-
-
 fun parseTimestamp(timestamp: Timestamp): Pair<String, String> {
     // Normalize time zone format from "UTC+8" to "UTC+08:00"
     val date = timestamp.toDate()

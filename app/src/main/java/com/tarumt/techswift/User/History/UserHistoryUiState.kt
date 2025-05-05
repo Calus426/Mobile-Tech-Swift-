@@ -1,10 +1,14 @@
 package com.tarumt.techswift.User.History
 
 import com.tarumt.techswift.Model.Request
-import com.tarumt.techswift.Model.Service
 
 
 data class UserHistoryUiState(
-    val finishedList : List<Request> = emptyList(),
-    val technicianName : String = ""
+    val finishedList : List<RequestDTO> = emptyList(),
+)
+
+
+data class RequestDTO(
+    val request: Request = Request(),
+    val technicianName: String = ""
 )
