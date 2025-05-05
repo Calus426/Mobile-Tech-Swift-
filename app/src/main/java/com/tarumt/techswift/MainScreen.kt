@@ -426,10 +426,10 @@ private fun BottomNavigationBar(
     if (currentRoute != Navigation.Profile.name) {
         NavigationBar(
             containerColor = BottomBar,
-            modifier = Modifier.clip(RoundedCornerShape(25.dp))
+            modifier = Modifier.clip(RoundedCornerShape( topStart = 25.dp,topEnd = 25.dp))
         ) {
             navItemList.forEachIndexed { index, navItem ->
-                NavigationBarItem(
+                NavigationBarItem(  
                     selected = selectedButton?.route == navItem.route,
                     onClick = {
                         if (currentRoute != navItem.route) {

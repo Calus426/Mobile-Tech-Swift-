@@ -1,5 +1,6 @@
 package com.tarumt.techswift.Technician
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,14 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -120,10 +119,10 @@ fun TechnicianHomeUI(
 
                                 TaskCard(
                                     serviceName = stringResource(serviceList[task.serviceId].label),
-                                    price = task.offeredPrice.toString(),
+                                    price = task.offeredPrice,
                                     onAccept = { viewModel.acceptTask(task, context) },
                                     onClick = { viewModel.onTaskSelected(task) },
-                                    address1=address1
+                                    address1 =address1
                                 )
 
                                 Spacer(modifier = Modifier.height(10.dp))
@@ -233,8 +232,9 @@ fun TechnicianHomeUI(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: () -> Unit, address1: String ) {
+fun TaskCard(serviceName: String, price: Double?, onAccept: () -> Unit, onClick: () -> Unit, address1: String ) {
     Card(
         shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2E2C)),
@@ -263,7 +263,7 @@ fun TaskCard(serviceName: String, price: String, onAccept: () -> Unit, onClick: 
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = price,
+                        text = "RM ${String.format("%.2f", price ?: 0.00)}",
                         color = Color.White,
                         fontSize = 14.sp
                     )

@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Order
+package com.tarumt.techswift.User.Order
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,7 +8,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.tarumt.techswift.Model.Request
-import com.tarumt.techswift.Model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

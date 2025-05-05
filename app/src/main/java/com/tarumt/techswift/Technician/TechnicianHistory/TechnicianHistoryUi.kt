@@ -1,5 +1,6 @@
 package com.tarumt.techswift.Technician.TechnicianHistory
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
@@ -168,6 +169,7 @@ fun TechnicianHistoryUi(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun HistoryServiceCard(
     task: Request,
@@ -226,7 +228,7 @@ fun HistoryServiceCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "RM ${task.offeredPrice}",
+                    text = "RM ${String.format("%.2f", task.offeredPrice ?: 0.00)}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,

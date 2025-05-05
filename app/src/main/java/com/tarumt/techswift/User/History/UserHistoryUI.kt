@@ -1,7 +1,6 @@
-package com.tarumt.techswift.User.UiScreen.History
+package com.tarumt.techswift.User.History
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,13 +56,13 @@ import coil.compose.AsyncImage
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Model.Service
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
-import com.tarumt.techswift.User.UiScreen.Order.OrderEvent
-import com.tarumt.techswift.User.UiScreen.Order.parseTimestamp
+import com.tarumt.techswift.User.Order.OrderEvent
+import com.tarumt.techswift.User.Order.parseTimestamp
 import com.tarumt.techswift.WindowInfo
 import com.tarumt.techswift.ui.theme.provider
 
 @Composable
-fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(),windowInfo: WindowInfo) {
+fun UserHistoryUI(viewModel: UserHistoryViewModel = viewModel(), windowInfo: WindowInfo) {
     val uiState by viewModel.uiState.collectAsState()
     val serviceList = remember { ServiceDataSource().loadServices() }
     val context = LocalContext.current

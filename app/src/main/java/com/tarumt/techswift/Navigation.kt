@@ -17,12 +17,12 @@ import com.tarumt.techswift.Profile.ProfileUI
 import com.tarumt.techswift.Profile.ProfileViewModel
 import com.tarumt.techswift.Technician.TechnicianHistory.TechnicianHistoryUi
 import com.tarumt.techswift.Technician.TechnicianHomeUI
-import com.tarumt.techswift.User.UiScreen.History.UserHistoryUI
-import com.tarumt.techswift.User.UiScreen.Home.UserHomeUI
-import com.tarumt.techswift.User.UiScreen.Order.UserOrderUI
-import com.tarumt.techswift.User.UiScreen.Order.UserOrderViewModel
-import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsUI
-import com.tarumt.techswift.User.UiScreen.ServiceDetails.ServiceDetailsViewModel
+import com.tarumt.techswift.User.History.UserHistoryUI
+import com.tarumt.techswift.User.Home.UserHomeUI
+import com.tarumt.techswift.User.Order.UserOrderUI
+import com.tarumt.techswift.User.Order.UserOrderViewModel
+import com.tarumt.techswift.User.ServiceDetails.ServiceDetailsUI
+import com.tarumt.techswift.User.ServiceDetails.ServiceDetailsViewModel
 
 
 enum class Navigation(@StringRes val title: Int, val canNavigate: Boolean) {

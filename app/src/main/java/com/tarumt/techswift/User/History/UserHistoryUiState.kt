@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.History
+package com.tarumt.techswift.User.History
 
 import com.tarumt.techswift.Model.Request
 import com.tarumt.techswift.Model.Service

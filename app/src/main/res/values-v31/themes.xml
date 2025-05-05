@@ -4,6 +4,8 @@
     <style name="Theme.TechSwift" parent="Theme.SplashScreen">
          <item name="windowSplashScreenBackground">#FFFFFF</item>
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
-        <item name="android:windowSplashScreenAnimationDuration">3000</item>
+        <item name="android:windowSplashScreenAnimationDuration">4500</item>
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.Light.NoActionBar</item>
+
     </style>
 </resources>

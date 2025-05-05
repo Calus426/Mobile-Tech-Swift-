@@ -75,7 +75,7 @@ class AuthViewModel: ViewModel() {
                         firestore.collection("users")
                             .document(uid)
                             .set(currentUser)
-                            .addOnSuccessListener { Toast.makeText(context, "User data saved!", Toast.LENGTH_SHORT).show() }
+                            .addOnSuccessListener { Toast.makeText(context, "User Account Created!", Toast.LENGTH_SHORT).show() }
 
                         fetchUserRole()
                         onSuccess()

@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Order
+package com.tarumt.techswift.User.Order
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -344,7 +344,7 @@ fun PendingServiceCard(
                     Icon(
                         Icons.Filled.Delete,
                         contentDescription = "Delete",
-                        tint = Color.Red
+                        tint = Color.White
                     )
                 }
             }
