@@ -56,7 +56,6 @@ fun TechnicianHomeUI(
     windowInfo: WindowInfo
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val serviceList = ServiceDataSource().loadServices()
 
     Box(
@@ -108,7 +107,6 @@ fun TechnicianHomeUI(
                         ) {
                             items(uiState.pendingList) { task ->
                                 val addressInfo = uiState.userAddresses[task.userId]
-                                val fullAddress = addressInfo?.fullAddress ?: "Fetching..."
                                 val address1 = addressInfo?.address1 ?: ""
 
                                 LaunchedEffect(task.userId) {
@@ -120,7 +118,7 @@ fun TechnicianHomeUI(
                                 TaskCard(
                                     serviceName = stringResource(serviceList[task.serviceId].label),
                                     price = task.offeredPrice,
-                                    onAccept = { viewModel.acceptTask(task, context) },
+                                    onAccept = { viewModel.acceptTask(task) },
                                     onClick = { viewModel.onTaskSelected(task) },
                                     address1 =address1
                                 )
@@ -151,7 +149,6 @@ fun TechnicianHomeUI(
                         val painter = rememberAsyncImagePainter(model = task.pictureDescription)
                         val addressInfo = uiState.userAddresses[task.userId]
                         val fullAddress = addressInfo?.fullAddress ?: "Fetching..."
-                        val address1 = addressInfo?.address1 ?: "Fetching..."
 
 
 

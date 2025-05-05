@@ -247,8 +247,8 @@ fun HistoryServiceCard(
                     IconButton(
                         onClick = { onCallClick()},
                         modifier = Modifier
-                            .size(48.dp) // Adjust size for touch target
-                            .background(Color.White, shape = CircleShape) // Optional background
+                            .size(48.dp)
+                            .background(Color.White, shape = CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Phone,

@@ -20,8 +20,7 @@ class TechnicianViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TechnicianUiState())
     val uiState: StateFlow<TechnicianUiState> = _uiState.asStateFlow()
 
-    var fullAddress : String = ""
-        private set
+
     private val db = FirebaseFirestore.getInstance()
 
     init {
@@ -62,9 +61,9 @@ class TechnicianViewModel : ViewModel() {
             }
     }
 
-    fun acceptTask(task: Request, context: Context) {
+    fun acceptTask(task: Request) {
         val auth=FirebaseAuth.getInstance()
-        val acceptedTimestamp = com.google.firebase.Timestamp.now()
+        val acceptedTimestamp = Timestamp.now()
         db.collection("requests").document("R"+task.id.toString())
             .update(
                 mapOf(

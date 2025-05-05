@@ -17,11 +17,10 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class TechnicianHistoryViewModel : ViewModel() {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
     private val _uiState = MutableStateFlow(TechnicianHistoryUiState())
     val uiState: StateFlow<TechnicianHistoryUiState> = _uiState.asStateFlow()
     private val _userPhones = mutableStateMapOf<String, String>()
-    val userPhones: Map<String, String> get() = _userPhones
+
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -29,7 +28,7 @@ class TechnicianHistoryViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         db.collection("requests")
-            .whereEqualTo("pending", false,)// Only accepted tasks
+            .whereEqualTo("pending", false,)
             .whereEqualTo("technicianId",currentUserId)
             .get()
             .addOnSuccessListener { result ->
