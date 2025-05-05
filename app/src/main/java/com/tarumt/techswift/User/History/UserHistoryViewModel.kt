@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.History
+package com.tarumt.techswift.User.History
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Home
+package com.tarumt.techswift.User.Home
 
 import com.tarumt.techswift.Model.Service
 

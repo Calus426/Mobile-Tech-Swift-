@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.ServiceDetails
+package com.tarumt.techswift.User.ServiceDetails
 
 import android.content.Context
 import android.net.Uri

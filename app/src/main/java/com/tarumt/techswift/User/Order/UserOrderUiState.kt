@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Order
+package com.tarumt.techswift.User.Order
 
 import com.tarumt.techswift.Model.Request
 

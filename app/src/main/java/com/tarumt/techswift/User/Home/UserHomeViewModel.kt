@@ -1,4 +1,4 @@
-package com.tarumt.techswift.User.UiScreen.Home
+package com.tarumt.techswift.User.Home
 
 import androidx.lifecycle.ViewModel
 import com.tarumt.techswift.User.Datasource.ServiceDataSource
